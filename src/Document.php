@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-class Document implements \JsonSerializable {
+class Document implements DocumentInterface {
     protected $data;
     protected $errors;
     protected $links;

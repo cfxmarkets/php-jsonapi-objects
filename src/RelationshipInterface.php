@@ -1,9 +1,10 @@
 <?php
 namespace KS\JsonApi;
 
-interface RelationshipInterface {
-    function getType();
-    function getId();
+interface RelationshipInterface extends \JsonSerializable {
+    function getName();
     function getLinks();
+    function getMeta();
+    function getData();
 }
 

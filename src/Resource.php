@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-class Resource implements \JsonSerializable {
+class Resource implements ResourceInterface {
     use \KS\ErrorHandlerTrait;
 
     protected $id;

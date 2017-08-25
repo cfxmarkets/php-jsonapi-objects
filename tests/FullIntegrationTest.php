@@ -1,10 +1,11 @@
 <?php
 
 use \KS\JsonApi as japi;
+use \Test\TestData;
 
 class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
     public function testCorrectlyUnserializesJsonApiDoc() {
-        $struct = $this->getTestStructure();
+        $struct = TestData::get('data');
         $doc = new japi\Document($struct);
 
         $this->assertTrue($doc->getData() instanceof japi\ResourceCollection);
@@ -30,74 +31,14 @@ class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testCorrectlyReserializesJsonApiDoc() {
-        $struct = $this->getTestStructure();
+        $struct = TestData::get('data');
         $doc = new japi\Document($struct);
         $this->assertEquals(json_encode($struct), json_encode($doc));
     }
 
-
-
-
-
-
-
-
-
-    protected function getTestStructure() {
-        return [
-            'data' => [
-                [
-                    'type' => 'test1',
-                    'id' => '1',
-                    'attributes' => [
-                        'city' => 'Chicago',
-                        'state' => 'IL',
-                        'country' => 'Panama',
-                    ],
-                    'relationships' => [
-                        'owner' => [
-                            'data' => [
-                                'type' => 'people',
-                                'id' => '2',
-                            ],
-                        ],
-                        'inhabitants' => [
-                            'data' => [
-                                [
-                                    'type' => 'people',
-                                    'id' => '3',
-                                ],
-                                [
-                                    'type' => 'people',
-                                    'id' => '4',
-                                ],
-                                [
-                                    'type' => 'people',
-                                    'id' => '5',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-                [
-                    'type' => 'test1',
-                    'id' => '2',
-                    'attributes' => [
-                        'city' => 'Boston',
-                        'state' => 'MA',
-                        'country' => 'Germany',
-                    ],
-                    'relationships' => [
-                        'owner' => [
-                            'data' => null
-                        ],
-                        'inhabitants' => [
-                            'data' => []
-                        ],
-                    ],
-                ],
-            ],
-        ];
+    public function testCorrectlyHandlesErrors() {
+        $e = TestData::get('errors');
+        $doc = new japi\Document($e);
+        $this->assertEquals($e['errors'][0]['status'], $doc->getErrors()[0]->getStatus());
     }
 }
-

@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-class ResourceCollection extends ArrayCollection implements \JsonSerializable {
+class ResourceCollection extends Collection {
     public function offsetSet($offset, $value) {
         if (!($value instanceof Resource)) {
             $type = gettype($value);
@@ -9,12 +9,6 @@ class ResourceCollection extends ArrayCollection implements \JsonSerializable {
             throw new \InvalidArgumentException("All values passed to a JsonApi ResourceCollection must be JsonApi Resources. Value is of type `".$type."`");
         }
         parent::offsetSet($offset, $value);
-    }
-
-    public function jsonSerialize(bool $fullResource=true) {
-        $data = [];
-        foreach($this->elements as $e) $data[] = $e->jsonSerialize($fullResource);
-        return $data;
     }
 }
 

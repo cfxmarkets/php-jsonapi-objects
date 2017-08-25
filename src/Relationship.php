@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-class Relationship implements \JsonSerializable {
+class Relationship implements RelationshipInterface {
     protected $name;
     protected $links;
     protected $meta;
