@@ -1,5 +1,5 @@
 {
-    "name" : "kael-shipman/jsonapi",
+    "name" : "kael-shipman/php-jsonapi-objects",
     "description" : "A class that provides a PHP implementation of JSON API objects. Note, this is not a protocol implementation, it is simply an implementation of classes as described by the [json-api spec](http://jsonapi.org/format/).",
     "type" : "library",
     "keywords" : [ "jsonapi", "json", "api" ],
@@ -38,6 +38,5 @@
         {
             "type": "git",
             "url": "ssh://git@github.com/kael-shipman/php-std-traits.git"
-        }
     ]
 }

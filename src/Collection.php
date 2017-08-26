@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-class Collection implements CollectionInterface  {
+abstract class Collection implements CollectionInterface  {
     use \KS\ArrayAccessTrait {
         offsetSet as protected parentOffsetSet;
     }

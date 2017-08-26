@@ -7,6 +7,7 @@ class Document implements DocumentInterface {
     protected $links;
     protected $meta;
     protected $jsonapi;
+    protected $included;
 
     public function __construct(array $data=null) {
         if ($data) {
@@ -39,12 +40,18 @@ class Document implements DocumentInterface {
                 // TODO: Validate jsonapi object
                 $this->jsonapi = $data['jsonapi'];
             }
+
+            if (array_key_exists('included', $data)) {
+                if (!is_array($data['included'])) throw new \InvalidArgumentException("If you pass an array of included resources, it must be an array, not an object or string or null or anything else.");
+                $this->included = new ResourceCollection();
+                foreach($data['included'] as $r) $this->included[] = new Resource($r);
+            }
         }
     }
 
 
     public function getData() { return $this->data; }
-    public function getErrors() { return $this->errors; }
+    public function getErrors() { return $this->errors ?: []; }
     public function getLinks() { return $this->links; }
     public function getMeta() { return $this->meta; }
     public function getJsonApi() { return $this->jsonapi; }

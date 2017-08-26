@@ -10,5 +10,14 @@ class ResourceCollection extends Collection {
         }
         parent::offsetSet($offset, $value);
     }
+
+    public function summarize() {
+        $str = [];
+        foreach($this->elements as $r) {
+            $type = ucfirst($r->getType());
+            $str[] = "$type resource #{$resource->getId()}";
+        }
+        return implode("; ", $str);
+    }
 }
 
