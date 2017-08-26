@@ -14,7 +14,6 @@
     ],
     "require" : {
         "php" : ">=5.6",
-        "kael-shipman/jsonapi-header" : ">0.0",
         "kael-shipman/php-std-traits" : "~1.0.2"
     },
     "require-dev" : {
@@ -29,14 +28,5 @@
         "psr-4" : {
             "Test\\": "tests/classes"
         }
-    },
-    "repositories" : [
-        {
-            "type": "path",
-            "url": "../jsonapi-header"
-        },
-        {
-            "type": "git",
-            "url": "ssh://git@github.com/kael-shipman/php-std-traits.git"
-    ]
+    }
 }
