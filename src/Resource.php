@@ -100,8 +100,6 @@ class Resource implements ResourceInterface {
 
 
 
-
-
     public function jsonSerialize($fullResource=true) {
         $data = [];
         $data['type'] = $this->type;

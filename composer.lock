@@ -4,56 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "46593bd111053ae918b3c9cdadc1e03b",
+    "content-hash": "a828f9d3bffeee632e524926f98b5d10",
     "packages": [
         {
-            "name": "kael-shipman/jsonapi-header",
-            "version": "0.1",
-            "dist": {
-                "type": "path",
-                "url": "../jsonapi-header",
-                "reference": "4fa79a818bfc04f68c944954cc94a39abdda3279",
-                "shasum": null
-            },
-            "require": {
-                "php": ">=5.5"
-            },
-            "require-dev": {
-                "phpunit/phpunit": ">=6.3"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "KS\\JsonApi\\": "src/"
-                }
-            },
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Kael Shipman",
-                    "email": "kael.shipman@gmail.com",
-                    "homepage": "https://colors.kaelshipman.me",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Interfaces and exceptions for the `kael-shipman/jsonapi` package.",
-            "keywords": [
-                "api",
-                "exceptions",
-                "interfaces",
-                "json",
-                "jsonapi"
-            ]
-        },
-        {
             "name": "kael-shipman/php-std-traits",
-            "version": "v1.0.2",
+            "version": "v1.0.3",
             "source": {
                 "type": "git",
-                "url": "ssh://git@github.com/kael-shipman/php-std-traits.git",
-                "reference": "65c6e67139f8b465674a57fc7bd1b5ed02adb9b0"
+                "url": "https://github.com/kael-shipman/php-std-traits.git",
+                "reference": "c2415c8cc2787985030684bb14107b2d0b8b3f3d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kael-shipman/php-std-traits/zipball/c2415c8cc2787985030684bb14107b2d0b8b3f3d",
+                "reference": "c2415c8cc2787985030684bb14107b2d0b8b3f3d",
+                "shasum": ""
             },
             "require": {
                 "php": ">=5.5"
@@ -70,11 +35,7 @@
                     "src/Exceptions.php"
                 ]
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Test\\": "tests/classes"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -90,7 +51,7 @@
             "keywords": [
                 "traits"
             ],
-            "time": "2017-08-25T21:13:33+00:00"
+            "time": "2017-08-27T22:13:06+00:00"
         }
     ],
     "packages-dev": [
@@ -147,6 +108,52 @@
                 "instantiate"
             ],
             "time": "2017-07-22T11:58:36+00:00"
+        },
+        {
+            "name": "kael-shipman/factory",
+            "version": "v5.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kael-shipman/php-factory.git",
+                "reference": "3808ec85b8f8a4c6e1a9769896028de2b41f0bac"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kael-shipman/php-factory/zipball/3808ec85b8f8a4c6e1a9769896028de2b41f0bac",
+                "reference": "3808ec85b8f8a4c6e1a9769896028de2b41f0bac",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~6.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "KS\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL3"
+            ],
+            "authors": [
+                {
+                    "name": "Kael Shipman",
+                    "email": "kael.shipman@gmail.com",
+                    "homepage": "https://colors.kaelshipman.me",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A class that provides overridable instantiation of classes through declarative method calls.",
+            "keywords": [
+                "dependency injection",
+                "factory",
+                "injector"
+            ],
+            "time": "2017-08-24T15:15:16+00:00"
         },
         {
             "name": "myclabs/deep-copy",
