@@ -6,7 +6,7 @@ use \Test\TestData;
 class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
     public function testCorrectlyUnserializesJsonApiDoc() {
         $struct = TestData::get('data');
-        $doc = new japi\Document($struct);
+        $doc = new japi\Document($this->f(), $struct);
 
         $this->assertTrue($doc->getData() instanceof japi\ResourceCollection);
         $this->assertTrue($doc->getData()[0] instanceof japi\Resource);
@@ -32,13 +32,17 @@ class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
 
     public function testCorrectlyReserializesJsonApiDoc() {
         $struct = TestData::get('data');
-        $doc = new japi\Document($struct);
+        $doc = new japi\Document($this->f(), $struct);
         $this->assertEquals(json_encode($struct), json_encode($doc));
     }
 
     public function testCorrectlyHandlesErrors() {
         $e = TestData::get('errors');
-        $doc = new japi\Document($e);
+        $doc = new japi\Document($this->f(), $e);
         $this->assertEquals($e['errors'][0]['status'], $doc->getErrors()[0]->getStatus());
     }
+
+
+
+    protected function f() { return \Test\Factory::getInstance(); }
 }

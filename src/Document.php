@@ -2,6 +2,7 @@
 namespace KS\JsonApi;
 
 class Document implements DocumentInterface {
+    protected $f;
     protected $data;
     protected $errors;
     protected $links;
@@ -9,22 +10,23 @@ class Document implements DocumentInterface {
     protected $jsonapi;
     protected $included;
 
-    public function __construct(array $data=null) {
+    public function __construct(FactoryInterface $f, array $data=null) {
+        $this->f = $f;
         if ($data) {
             if (!array_key_exists('data', $data) && !array_key_exists('errors', $data)) throw new \InvalidArgumentException("You must provide either a `data` key containing a Resource or ResourceCollection, or an ErrorsCollection via the `errors` key to create a valid JsonApi Document.");
 
             if (array_key_exists('errors', $data)) {
-                foreach($data['errors'] as $error) $this->addError(new Error($error));
+                foreach($data['errors'] as $error) $this->addError($this->f->newError($error));
             }
 
             if (array_key_exists('data', $data)) {
                 if ($this->errors) throw new \InvalidArgumentException("You must have EITHER errors OR data to construct a valid JsonApi Document -- not both.");
 
                 if ($data['data'] === null) $this->data = null;
-                elseif (array_key_exists('type', $data['data'])) $this->data = new Resource($data['data']);
+                elseif (array_key_exists('type', $data['data'])) $this->data = $this->f->newResource($data['data']);
                 else {
-                    $rc = new ResourceCollection();
-                    foreach ($data['data'] as $r) $rc[] = new Resource($r);
+                    $rc = $this->f->newResourceCollection();
+                    foreach ($data['data'] as $r) $rc[] = $this->f->newResource($r);
                     $this->data = $rc;
                 }
             }
@@ -43,8 +45,8 @@ class Document implements DocumentInterface {
 
             if (array_key_exists('included', $data)) {
                 if (!is_array($data['included'])) throw new \InvalidArgumentException("If you pass an array of included resources, it must be an array, not an object or string or null or anything else.");
-                $this->included = new ResourceCollection();
-                foreach($data['included'] as $r) $this->included[] = new Resource($r);
+                $this->included = $this->f->newResourceCollection();
+                foreach($data['included'] as $r) $this->included[] = $this->f->newResource($r);
             }
         }
     }
@@ -63,7 +65,7 @@ class Document implements DocumentInterface {
     }
 
     public function addError(Error $e) {
-        if (!$this->errors) $this->errors = new ErrorsCollection();
+        if (!$this->errors) $this->errors = $this->f->newErrorsCollection();
         $this->errors[] = $e;
     }
 

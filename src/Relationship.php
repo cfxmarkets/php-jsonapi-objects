@@ -2,22 +2,26 @@
 namespace KS\JsonApi;
 
 class Relationship implements RelationshipInterface {
+    protected $f;
+
     protected $name;
     protected $links;
     protected $meta;
     protected $data;
 
-    public function __construct(array $data) {
+    public function __construct(FactoryInterface $f, array $data) {
+        $this->f = $f;
+
         if (!array_key_exists('name', $data)) throw new \InvalidArgumentException("To construct a Relationship, you must pass a `name` key containing the name of the resource.");
         $this->name = $data['name'];
 
         if (!array_key_exists('data', $data)) throw new \InvalidArgumentException("To construct a Relationship, you must pass a `data` key containing a Resource or a ResourceCollection.");
 
         if ($data['data'] === null) $this->data = null;
-        elseif (array_key_exists('id', $data['data'])) $this->data = new Resource($data['data']);
+        elseif (array_key_exists('id', $data['data'])) $this->data = $this->f->newResource($data['data']);
         else {
-            $rc = $this->data = new ResourceCollection();
-            foreach($data['data'] as $r) $rc[] = new Resource($r);
+            $rc = $this->data = $this->f->newResourceCollection();
+            foreach($data['data'] as $r) $rc[] = $this->f->newResource($r);
         }
 
         if (array_key_exists('links', $data)) $this->links = $data['links'];
