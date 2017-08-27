@@ -2,6 +2,7 @@
 namespace KS\JsonApi;
 
 class Error implements ErrorInterface {
+    protected $f;
     protected $fields = ['id','status','code','title','detail','source','links','meta'];
 
     protected $id;
@@ -13,7 +14,9 @@ class Error implements ErrorInterface {
     protected $source;
     protected $meta;
 
-    public function __construct($props) {
+    public function __construct(FactoryInterface $f, $props) {
+        $this->f = $f;
+
         if (!array_key_exists('status', $props)) throw new \InvalidArgumentException("You must include a `status` key in your initial properties array");
         if (!array_key_exists('title', $props)) throw new \InvalidArgumentException("You must include a `title` key in your initial properties array");
 
@@ -24,7 +27,7 @@ class Error implements ErrorInterface {
                 if (!($v instanceof Collection)) throw new \InvalidArgumentException("Value passed with key `links` must be a JsonApi Collection containing an `about` key with a link to more information about this error.");
                 if (count($v) != 1 ||
                     !array_key_exists('about', $v) ||
-                    (!is_string($v['about']) && !($v['about'] instanceof Link))) throw new \InvalidArgumentError("The Collection passed as `links` must contain exactly one item, `about`, which should be a string or a Link object.");
+                    (!is_string($v['about']) && !($v['about'] instanceof Link))) throw new \InvalidArgumentException("The Collection passed as `links` must contain exactly one item, `about`, which should be a string or a Link object.");
             } elseif ($k == 'status') {
                 if (!is_int($v) || $v < 100 || $v >= 600) throw new \InvalidArgumentException("Value for `status` must be an integery between 100 and 599");
             }

@@ -4,6 +4,8 @@ namespace KS\JsonApi;
 class Resource implements ResourceInterface {
     use \KS\ErrorHandlerTrait;
 
+    protected $f;
+
     protected $id;
     protected $type;
     protected $attributes;
@@ -25,7 +27,9 @@ class Resource implements ResourceInterface {
      * to be a "ResourceIdentifier", i.e., an incomplete resource whose attributes and relationships may be fetched
      * from persistence.
      */
-    public function __construct($data=null, $initilized=true) {
+    public function __construct(FactoryInterface $f, $data=null, $initilized=true) {
+        $this->f = $f;
+
         if ($data) {
             if (array_key_exists('id', $data)) $this->id = $data['id'];
             if (array_key_exists('type', $data)) {
@@ -38,7 +42,7 @@ class Resource implements ResourceInterface {
             if (array_key_exists('relationships', $data) && count($data['relationships']) > 0) {
                 foreach($data['relationships'] as $rel => $obj) {
                     $obj['name'] = $rel;
-                    $this->setRelationship(new Relationship($obj));
+                    $this->setRelationship($this->f->newRelationship($obj));
                 }
             }
         }
@@ -93,8 +97,6 @@ class Resource implements ResourceInterface {
 
     public function validateResource() {
     }
-
-
 
 
 

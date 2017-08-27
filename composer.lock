@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "af83b187e5e2101b598bff8586650f53",
+    "content-hash": "431fadbddae5f67e14ef2936334481ae",
     "packages": [
         {
             "name": "kael-shipman/php-std-traits",
@@ -106,6 +106,52 @@
                 "instantiate"
             ],
             "time": "2015-06-14T21:17:01+00:00"
+        },
+        {
+            "name": "kael-shipman/factory",
+            "version": "v3.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kael-shipman/php-factory.git",
+                "reference": "7b7e0c9f42bd14f43e46830f47727731935b21a2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kael-shipman/php-factory/zipball/7b7e0c9f42bd14f43e46830f47727731935b21a2",
+                "reference": "7b7e0c9f42bd14f43e46830f47727731935b21a2",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "KS\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL3"
+            ],
+            "authors": [
+                {
+                    "name": "Kael Shipman",
+                    "email": "kael.shipman@gmail.com",
+                    "homepage": "https://colors.kaelshipman.me",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A class that provides overridable instantiation of classes through declarative method calls.",
+            "keywords": [
+                "dependency injection",
+                "factory",
+                "injector"
+            ],
+            "time": "2017-08-24T15:25:41+00:00"
         },
         {
             "name": "phpdocumentor/reflection-docblock",
