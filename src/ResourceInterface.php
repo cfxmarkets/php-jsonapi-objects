@@ -2,15 +2,15 @@
 namespace KS\JsonApi;
 
 interface ResourceInterface extends \JsonSerializable {
-    function setAttribute(string $attr, $val);
+    function setAttribute($attr, $val);
     function setRelationship(Relationship $r);
     function getType();
     function getId();
     function getAttributes();
-    function getAttribute(string $k);
+    function getAttribute($k);
     function getRelationships();
-    function getRelationship(string $k);
-    function validateRelationship(string $rel);
-    function validateAttribute(string $field);
+    function getRelationship($k);
+    function validateRelationship($rel);
+    function validateAttribute($field);
     function validateResource();
 }

@@ -7,7 +7,7 @@ class Relationship implements RelationshipInterface {
     protected $meta;
     protected $data;
 
-    public function __construct(array $data) {
+    public function __construct($data) {
         if (!array_key_exists('name', $data)) throw new \InvalidArgumentException("To construct a Relationship, you must pass a `name` key containing the name of the resource.");
         $this->name = $data['name'];
 

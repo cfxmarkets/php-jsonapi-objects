@@ -13,7 +13,7 @@ class Error implements ErrorInterface {
     protected $source;
     protected $meta;
 
-    public function __construct(array $props) {
+    public function __construct($props) {
         if (!array_key_exists('status', $props)) throw new \InvalidArgumentException("You must include a `status` key in your initial properties array");
         if (!array_key_exists('title', $props)) throw new \InvalidArgumentException("You must include a `title` key in your initial properties array");
 

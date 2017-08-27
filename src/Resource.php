@@ -25,7 +25,7 @@ class Resource implements ResourceInterface {
      * to be a "ResourceIdentifier", i.e., an incomplete resource whose attributes and relationships may be fetched
      * from persistence.
      */
-    public function __construct(array $data=null, bool $initilized=true) {
+    public function __construct($data=null, $initilized=true) {
         if ($data) {
             if (array_key_exists('id', $data)) $this->id = $data['id'];
             if (array_key_exists('type', $data)) {
@@ -45,7 +45,7 @@ class Resource implements ResourceInterface {
         $this->initialized = $initialized;
     }
 
-    public function setAttribute(string $attr, $val) {
+    public function setAttribute($attr, $val) {
         if ($this->validAttributes && !in_array($attr, $this->validAttributes)) throw new \InvalidArgumentException("Invalid attribute passed: This resource has defined a set of valid attributes which does not include `$attr`. Valid attributes are ".implode(', ', $this->validAttributes).".");
         if (!$this->attributes) $this->attributes = [];
         $this->attributes[$attr] = $val;
@@ -68,14 +68,14 @@ class Resource implements ResourceInterface {
     public function getAttributes() {
         return $this->attributes ?: [];
     }
-    public function getAttribute(string $k) {
+    public function getAttribute($k) {
         if (!$this->attributes) return null;
         return $this->attributes[$k];
     }
     public function getRelationships() {
         return $this->relationships ?: [];
     }
-    public function getRelationship(string $k) {
+    public function getRelationship($k) {
         if (!$this->relationships) return null;
         return $this->relationships[$k];
     }
@@ -85,10 +85,10 @@ class Resource implements ResourceInterface {
 
 
 
-    public function validateRelationship(string $rel) {
+    public function validateRelationship($rel) {
     }
 
-    public function validateAttribute(string $field) {
+    public function validateAttribute($field) {
     }
 
     public function validateResource() {

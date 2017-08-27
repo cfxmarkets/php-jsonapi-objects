@@ -9,7 +9,7 @@ class Document implements DocumentInterface {
     protected $jsonapi;
     protected $included;
 
-    public function __construct(array $data=null) {
+    public function __construct($data=null) {
         if ($data) {
             if (!array_key_exists('data', $data) && !array_key_exists('errors', $data)) throw new \InvalidArgumentException("You must provide either a `data` key containing a Resource or ResourceCollection, or an ErrorsCollection via the `errors` key to create a valid JsonApi Document.");
 

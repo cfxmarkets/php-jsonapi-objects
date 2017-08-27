@@ -10,7 +10,7 @@ abstract class Collection implements CollectionInterface  {
 
     protected $stringIndexable = true;
 
-    public function __construct(array $items=[]) {
+    public function __construct($items=[]) {
         foreach($items as $k => $v) $this[$k] = $v;
     }
 
@@ -19,7 +19,7 @@ abstract class Collection implements CollectionInterface  {
         $this->parentOffsetSet($offset, $value);
     }
 
-    public function jsonSerialize(bool $fullResource=true) {
+    public function jsonSerialize($fullResource=true) {
         $data = [];
         foreach($this->elements as $e) $data[] = $e->jsonSerialize($fullResource);
         return $data;
