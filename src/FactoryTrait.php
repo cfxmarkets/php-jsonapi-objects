@@ -2,28 +2,28 @@
 namespace KS\JsonApi;
 
 trait FactoryTrait {
-    function newDocument($data=null) {
+    function newJsonApiDocument($data=null) {
         return $this->instantiate("\\KS\\JsonApi\\Document", [$this, $data]);
     }
 
-    function newResource($data=null, $initialized=true, $type=null) {
-        if ($type !== null) throw new \UnknownResourceTypeException("Type `$type` is unknown. You can handle this type by overriding the `newResource` method in your factory and adding a handler for the type there.");
+    function newJsonApiResource($data=null, $initialized=true, $type=null) {
+        if ($type !== null) throw new \UnknownResourceTypeException("Type `$type` is unknown. You can handle this type by overriding the `newJsonApiResource` method in your factory and adding a handler for the type there.");
         return $this->instantiate("\\KS\\JsonApi\\Resource", [$this, $data, $initialized]);
     }
 
-    function newRelationship($data) {
+    function newJsonApiRelationship($data) {
         return $this->instantiate("\\KS\\JsonApi\\Relationship", [$this, $data]);
     }
 
-    function newError($data) {
+    function newJsonApiError($data) {
         return $this->instantiate("\\KS\\JsonApi\\Error", [$this, $data]);
     }
 
-    function newResourceCollection($resources=[]) {
+    function newJsonApiResourceCollection($resources=[]) {
         return $this->instantiate("\\KS\\JsonApi\\ResourceCollection", [$resources]);
     }
 
-    function newErrorsCollection($errors=[]) {
+    function newJsonApiErrorsCollection($errors=[]) {
         return $this->instantiate("\\KS\\JsonApi\\ErrorsCollection", [$errors]);
     }
 }

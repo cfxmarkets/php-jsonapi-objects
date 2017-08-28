@@ -2,11 +2,11 @@
 namespace KS\JsonApi;
 
 interface FactoryInterface {
-    function newDocument($data=null);
-    function newResource($data=null, $initialized=true, $type=null);
-    function newRelationship($data);
-    function newError($data);
-    function newResourceCollection($resources=[]);
-    function newErrorsCollection($errors=[]);
+    function newJsonApiDocument($data=null);
+    function newJsonApiResource($data=null, $initialized=true, $type=null);
+    function newJsonApiRelationship($data);
+    function newJsonApiError($data);
+    function newJsonApiResourceCollection($resources=[]);
+    function newJsonApiErrorsCollection($errors=[]);
 }
 

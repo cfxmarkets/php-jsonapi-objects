@@ -18,10 +18,10 @@ class Relationship implements RelationshipInterface {
         if (!array_key_exists('data', $data)) throw new \InvalidArgumentException("To construct a Relationship, you must pass a `data` key containing a Resource or a ResourceCollection (or null).");
 
         if ($data['data'] === null) $this->data = null;
-        elseif (array_key_exists('id', $data['data'])) $this->data = $this->f->newResource($data['data'], false, array_key_exists('type', $data) ? $data['type'] : null);
+        elseif (array_key_exists('id', $data['data'])) $this->data = $this->f->newJsonApiResource($data['data'], false, array_key_exists('type', $data) ? $data['type'] : null);
         else {
-            $rc = $this->data = $this->f->newResourceCollection();
-            foreach($data['data'] as $r) $rc[] = $this->f->newResource($r, false, array_key_exists('type', $r) ? $r['type'] : null);
+            $rc = $this->data = $this->f->newJsonApiResourceCollection();
+            foreach($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, false, array_key_exists('type', $r) ? $r['type'] : null);
         }
 
         if (array_key_exists('links', $data)) $this->links = $data['links'];
