@@ -12,7 +12,7 @@ class Resource implements ResourceInterface {
     protected $validAttributes;
     protected $relationships;
     protected $validRelationships;
-    protected $initilized;
+    protected $initialized;
 
 
     /**
@@ -27,7 +27,7 @@ class Resource implements ResourceInterface {
      * to be a "ResourceIdentifier", i.e., an incomplete resource whose attributes and relationships may be fetched
      * from persistence.
      */
-    public function __construct(FactoryInterface $f, $data=null, $initilized=true) {
+    public function __construct(FactoryInterface $f, $data=null, $initialized=true) {
         $this->f = $f;
 
         if ($data) {
