@@ -67,18 +67,14 @@ class Resource implements ResourceInterface {
 
 
 
-    public function getType() { return $this->type; }
+    public function getResourceType() { return $this->type; }
     public function getId() { return $this->id; }
-    public function getAttributes() {
-        return $this->attributes ?: [];
-    }
+    public function getAttributes() { return $this->attributes ?: []; }
     public function getAttribute($k) {
         if (!$this->attributes) return null;
         return $this->attributes[$k];
     }
-    public function getRelationships() {
-        return $this->relationships ?: [];
-    }
+    public function getRelationships() { return $this->relationships ?: []; }
     public function getRelationship($k) {
         if (!$this->relationships) return null;
         return $this->relationships[$k];

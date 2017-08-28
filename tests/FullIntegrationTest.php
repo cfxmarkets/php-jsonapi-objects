@@ -12,7 +12,7 @@ class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
         $this->assertTrue($doc->getData()[0] instanceof japi\Resource);
 
         for($i = 0; $i < 2; $i++) {
-            $this->assertEquals('test1', $doc->getData()[$i]->getType());
+            $this->assertEquals('test1', $doc->getData()[$i]->getResourceType());
             $this->assertEquals($struct['data'][$i]['id'], $doc->getData()[$i]->getId());
             $this->assertEquals(count($struct['data'][$i]['attributes']), count($doc->getData()[$i]->getAttributes()));
             $this->assertEquals($struct['data'][$i]['attributes']['city'], $doc->getData()[$i]->getAttribute('city'));
