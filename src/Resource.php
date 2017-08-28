@@ -42,7 +42,7 @@ class Resource implements ResourceInterface {
             if (array_key_exists('relationships', $data) && count($data['relationships']) > 0) {
                 foreach($data['relationships'] as $rel => $obj) {
                     $obj['name'] = $rel;
-                    $this->setRelationship($this->f->newRelationship($obj));
+                    $this->setRelationship($this->f->newJsonApiRelationship($obj));
                 }
             }
         }
