@@ -30,5 +30,9 @@ trait FactoryTrait {
     function newJsonApiMeta(array $data=null) {
         return $this->instantiate("\\KS\\JsonApi\\Meta", [$data]);
     }
+
+    function newJsonApiLink(array $data=null) {
+        return $this->instantiate("\\KS\\JsonApi\\Link", [$this, $data]);
+    }
 }
 

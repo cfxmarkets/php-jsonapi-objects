@@ -9,5 +9,6 @@ interface FactoryInterface {
     function newJsonApiResourceCollection(array $resources=[]);
     function newJsonApiErrorsCollection(array $errors=[]);
     function newJsonApiMeta(array $data=null);
+    function newJsonApiLink(array $data=null);
 }
 
