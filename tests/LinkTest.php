@@ -7,7 +7,7 @@ class LinkTest extends \PHPUnit\Framework\TestCase {
         try {
             $l = new Link();
             $this->fail("Should have thrown error");
-        } catch (\ArgumentCountError $e) {
+        } catch (\PHPUnit_Framework_Error $e) {
             $this->assertTrue(true, "This is the desired behavior");
         }
     }
