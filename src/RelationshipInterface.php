@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-interface RelationshipInterface extends \JsonSerializable {
+interface RelationshipInterface extends NamedMemberInterface {
     function getName();
     function getLinks();
     function getMeta();
