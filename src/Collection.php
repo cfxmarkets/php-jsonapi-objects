@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-abstract class Collection implements CollectionInterface  {
+class Collection implements CollectionInterface  {
     use \KS\ArrayAccessTrait {
         offsetSet as protected parentOffsetSet;
     }
@@ -21,8 +21,17 @@ abstract class Collection implements CollectionInterface  {
 
     public function jsonSerialize(bool $fullResource=true) {
         $data = [];
-        foreach($this->elements as $e) $data[] = $e->jsonSerialize($fullResource);
+        foreach($this->elements as $k => $e) {
+            if ($e instanceof \JsonSerializable) $data[$k] = $e->jsonSerialize($fullResource);
+            else $data[$k] = $e;
+        }
         return $data;
+    }
+
+    public function summarize() {
+        $str = [];
+        foreach($this->elements as $k => $v) $str[] = "$k: ".((string)$v);
+        return implode("; ", $str);
     }
 }
 

@@ -8,5 +8,6 @@ interface FactoryInterface {
     function newJsonApiError(array $data);
     function newJsonApiResourceCollection(array $resources=[]);
     function newJsonApiErrorsCollection(array $errors=[]);
+    function newJsonApiMeta(array $data=null);
 }
 
