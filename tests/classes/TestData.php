@@ -70,6 +70,16 @@ class TestData {
             ],
         ];
 
+        if (!$what || $what == 'links') $data['links'] = [
+            'self' => '/test/link',
+            'next' => [
+                'href' => '/test/link?pg=2',
+                'meta' => [
+                    'scheme' => 'paginated',
+                ],
+            ],
+        ];
+
         return $data;
     }
 }

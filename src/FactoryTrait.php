@@ -26,5 +26,17 @@ trait FactoryTrait {
     function newJsonApiErrorsCollection($errors=[]) {
         return $this->instantiate("\\KS\\JsonApi\\ErrorsCollection", [$errors]);
     }
+
+    function newJsonApiMeta($data=null) {
+        return $this->instantiate("\\KS\\JsonApi\\Meta", [$data]);
+    }
+
+    function newJsonApiLink($data=null) {
+        return $this->instantiate("\\KS\\JsonApi\\Link", [$this, $data]);
+    }
+
+    function newJsonApiLinksCollection($links=[]) {
+        return $this->instantiate("\\KS\\JsonApi\\LinksCollection", [$links]);
+    }
 }
 
