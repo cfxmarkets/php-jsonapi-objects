@@ -86,7 +86,7 @@ class Document implements DocumentInterface {
         else return null;
     }
     public function getMeta() { return $this->meta; }
-    public function getJsonApi() { return $this->jsonApi; }
+    public function getJsonapi() { return $this->jsonapi; }
 
 
 
@@ -114,8 +114,8 @@ class Document implements DocumentInterface {
         return $this;
     }
 
-    public function setJsonApi(array $jsonapi) {
-        $this->jsonApi = $jsonapi;
+    public function setJsonapi(array $jsonapi) {
+        $this->jsonapi = $jsonapi;
         return $this;
     }
 
@@ -129,7 +129,7 @@ class Document implements DocumentInterface {
 
         if ($this->links) $data['links'] = $this->links;
         if ($this->meta) $data['meta'] = $this->meta;
-        if ($this->jsonApi) $data['jsonapi'] = $this->jsonApi;
+        if ($this->jsonapi) $data['jsonapi'] = $this->jsonapi;
 
         return $data;
     }
