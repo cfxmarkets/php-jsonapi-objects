@@ -6,6 +6,7 @@ use \Test\TestData;
 class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
     public function testCorrectlyUnserializesJsonApiDoc() {
         $struct = TestData::get('data');
+        $struct['links'] = TestData::get('links')['links'];
         $doc = new japi\Document($this->f(), $struct);
 
         $this->assertTrue($doc->getData() instanceof japi\ResourceCollection);
@@ -27,11 +28,15 @@ class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
                 $this->assertNull($doc->getData()[$i]->getRelationship('owner')->getData());
                 $this->assertEquals(0, count($doc->getData()[$i]->getRelationship('inhabitants')->getData()));
             }
+
+            $this->assertTrue($doc->getLinks() instanceof japi\LinksCollectionInterface);
+            $this->assertEquals('/test/link',$doc->getLinks()['self']->getHref());
         }
     }
 
     public function testCorrectlyReserializesJsonApiDoc() {
         $struct = TestData::get('data');
+        $struct['links'] = TestData::get('links')['links'];
         $doc = new japi\Document($this->f(), $struct);
         $this->assertEquals(json_encode($struct), json_encode($doc));
     }

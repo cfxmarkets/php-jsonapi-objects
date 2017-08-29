@@ -13,30 +13,56 @@ class Document implements DocumentInterface {
     public function __construct(FactoryInterface $f, array $data=null) {
         $this->f = $f;
         if ($data) {
-            if (!array_key_exists('data', $data) && !array_key_exists('errors', $data)) throw new \InvalidArgumentException("You must provide either a `data` key containing a Resource or ResourceCollection, or an ErrorsCollection via the `errors` key to create a valid JsonApi Document.");
-
             if (array_key_exists('errors', $data)) {
-                foreach($data['errors'] as $error) $this->addError($this->f->newJsonApiError($error));
+                foreach($data['errors'] as $error) {
+                    if (!($error instanceof Error)) $error = $this->f->newJsonApiError($error);
+                    $this->addError($error);
+                }
             }
 
             if (array_key_exists('data', $data)) {
-                if ($this->errors) throw new \InvalidArgumentException("You must have EITHER errors OR data to construct a valid JsonApi Document -- not both.");
-
                 if ($data['data'] === null) $this->data = null;
+                elseif ($data['data'] instanceof Resource || $data['data'] instanceof ResourceCollection) $this->data = $data['data'];
                 elseif (array_key_exists('type', $data['data'])) $this->data = $this->f->newJsonApiResource($data['data'], true, $data['data']['type']);
-                else {
+                elseif (is_array($data['data'])) {
                     $rc = $this->f->newJsonApiResourceCollection();
                     foreach ($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, true, $r['type']);
                     $this->data = $rc;
+                } else {
+                    throw new \InvalidArgumentException("Malformed `data` object in initial data array.");
                 }
             }
 
             if (array_key_exists('links', $data)) {
-                //TODO: Validate links object
-                $this->links = $data['links'];
+                if (is_array($data['links'])) {
+                    $links = $this->f->newJsonApiLinksCollection();
+                    foreach($data['links'] as $name => $link) {
+                        if (!($link instanceof LinkInterface)) {
+                            if (is_array($link)) {
+                                if (!array_key_exists('name', $link)) $link['name'] = $name;
+                            } else {
+                                $link = [
+                                    'href' => $link,
+                                    'name' => $name,
+                                ];
+                            }
+                            $links[$name] = $this->f->newJsonApiLink($link);
+                        } else {
+                            $links[$link->getMemberName()] = $link;
+                        }
+                    }
+                    $this->links = $links;
+                } elseif ($data['links'] instanceof LinksCollectionInterface) {
+                    $this->links = $data['links'];
+                } else {
+                    throw new \InvalidArgumentException("Links passed must be either an indexed collection of link objects or an array of link objects or data");
+                }
             }
 
-            if (array_key_exists('meta', $data)) $this->meta = $data['meta'];
+            if (array_key_exists('meta', $data)) {
+                if ($data['meta'] instanceof Meta) $this->meta = $data['meta'];
+                else $this->meta = $this->f->newJsonApiMeta($data['meta']);
+            }
 
             if (array_key_exists('jsonapi', $data)) {
                 // TODO: Validate jsonapi object
@@ -53,33 +79,57 @@ class Document implements DocumentInterface {
 
 
     public function getData() { return $this->data; }
-    public function getErrors() { return $this->errors ?: []; }
-    public function getLinks() { return $this->links; }
+    public function getErrors() { return $this->errors ?: $this->f->newJsonApiErrorsCollection(); }
+    public function getLinks() { return $this->links ?: $this->f->newJsonApiLinksCollection(); }
+    public function getLink(string $name) {
+        if ($this->links) return $this->links[$name];
+        else return null;
+    }
     public function getMeta() { return $this->meta; }
-    public function getJsonApi() { return $this->jsonapi; }
+    public function getJsonApi() { return $this->jsonApi; }
+
+
 
 
     public function setData($data) {
-        if (!($data instanceof Resource) && !($data instanceof ResourceCollection)) throw new \InvalidArgumentException("Data must be either a Resource or a ResourceCollection");
+        if (!($data instanceof ResourceInterface) && !($data instanceof ResourceCollectionInterface)) throw new \InvalidArgumentException("Data must be either a Resource or a ResourceCollection");
         $this->data = $data;
+        return $this;
     }
 
-    public function addError(Error $e) {
+    public function addError(ErrorInterface $e) {
         if (!$this->errors) $this->errors = $this->f->newJsonApiErrorsCollection();
         $this->errors[] = $e;
+        return $this;
     }
+
+    public function addLink(LinkInterface $l) {
+        if (!$this->links) $this->links = $this->f->newJsonApiLinksCollection();
+        $this->links[$l->getMemberName()] = $l;
+        return $this;
+    }
+
+    public function setMeta(MetaInterface $m) {
+        $this->meta = $m;
+        return $this;
+    }
+
+    public function setJsonApi(array $jsonapi) {
+        $this->jsonApi = $jsonapi;
+        return $this;
+    }
+
+
+
 
     public function jsonSerialize() {
         $data = [];
         if ($this->errors) $data['errors'] = $this->errors;
-        else {
-            if ($this->data) $data['data'] = $this->data;
-            else $data['data'] = null;
-        }
+        else $data['data'] = $this->data;
 
         if ($this->links) $data['links'] = $this->links;
         if ($this->meta) $data['meta'] = $this->meta;
-        if ($this->jsonapi) $data['jsonapi'] = $this->jsonapi;
+        if ($this->jsonApi) $data['jsonapi'] = $this->jsonApi;
 
         return $data;
     }

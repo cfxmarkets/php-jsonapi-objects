@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-class ErrorsCollection extends Collection {
+class ErrorsCollection extends Collection implements ErrorsCollectionInterface {
     protected $stringIndexable = false;
 
     public function offsetSet($offset, $value) {

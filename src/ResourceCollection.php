@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-class ResourceCollection extends Collection {
+class ResourceCollection extends Collection implements ResourceCollectionInterface {
     public function offsetSet($offset, $value) {
         if (!($value instanceof Resource)) {
             $type = gettype($value);

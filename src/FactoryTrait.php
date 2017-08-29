@@ -34,5 +34,9 @@ trait FactoryTrait {
     function newJsonApiLink(array $data=null) {
         return $this->instantiate("\\KS\\JsonApi\\Link", [$this, $data]);
     }
+
+    function newJsonApiLinksCollection(array $links=[]) {
+        return $this->instantiate("\\KS\\JsonApi\\LinksCollection", [$links]);
+    }
 }
 
