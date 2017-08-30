@@ -46,6 +46,15 @@ class Resource implements ResourceInterface {
                 }
             }
         }
+
+        if (is_array($this->validAttributes)) {
+            foreach($this->validAttributes as $attr) $this->setAttribute($attr, null);
+        }
+
+        if (is_array($this->validRelationships)) {
+            foreach($this->validRelationships as $rel) $this->setRelationship($this->f->newJsonApiRelationship(['name' => $rel, 'data' => null]));
+        }
+
         $this->initialized = $initialized;
     }
 
