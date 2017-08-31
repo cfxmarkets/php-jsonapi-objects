@@ -23,11 +23,16 @@ class Document implements DocumentInterface {
             if (array_key_exists('data', $data)) {
                 if ($data['data'] === null) $this->data = null;
                 elseif ($data['data'] instanceof Resource || $data['data'] instanceof ResourceCollection) $this->data = $data['data'];
-                elseif (array_key_exists('type', $data['data'])) $this->data = $this->f->newJsonApiResource($data['data'], true, $data['data']['type']);
                 elseif (is_array($data['data'])) {
-                    $rc = $this->f->newJsonApiResourceCollection();
-                    foreach ($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, true, $r['type']);
-                    $this->data = $rc;
+                    $isCollection = is_numeric(implode('', array_keys($data['data'])));
+                    if ($isCollection) {
+                        $rc = $this->f->newJsonApiResourceCollection();
+                        foreach ($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, true, $r['type']);
+                        $this->data = $rc;
+                    } else {
+                        if (!array_key_exists('type', $data['data'])) throw new \InvalidArgumentException("If you provide a resource via the `data` key, you MUST specify its type via the `data::type` key (e.g., [ 'data' => [ 'type' => 'my-resources', 'attributes' => [ ... ] ] ]).");
+                        $this->data = $this->f->newJsonApiResource($data['data'], true, $data['data']['type']);
+                    }
                 } else {
                     throw new \InvalidArgumentException("Malformed `data` object in initial data array.");
                 }
