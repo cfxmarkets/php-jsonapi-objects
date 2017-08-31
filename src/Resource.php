@@ -48,14 +48,24 @@ class Resource implements ResourceInterface {
         }
 
         if (is_array($this->validAttributes)) {
-            foreach($this->validAttributes as $attr) $this->setAttribute($attr, null);
+            foreach($this->validAttributes as $attr) {
+                if (!$this->getAttribute($attr)) $this->setAttribute($attr, null);
+            }
         }
 
         if (is_array($this->validRelationships)) {
-            foreach($this->validRelationships as $rel) $this->setRelationship($this->f->newJsonApiRelationship(['name' => $rel, 'data' => null]));
+            foreach($this->validRelationships as $rel) {
+                if (!$this->getRelationship($rel)) $this->setRelationship($this->f->newJsonApiRelationship(['name' => $rel, 'data' => null]));
+            }
         }
 
         $this->initialized = $initialized;
+    }
+
+    public function setId(string $id) {
+        if ($this->id !== null && $id != $this->id) throw new DuplicateIdException("This resource already has an id. You cannot set a new ID for it.");
+        $this->id = $id;
+        return $this;
     }
 
     public function setAttribute(string $attr, $val) {
@@ -80,12 +90,13 @@ class Resource implements ResourceInterface {
     public function getId() { return $this->id; }
     public function getAttributes() { return $this->attributes ?: []; }
     public function getAttribute(string $k) {
-        if (!$this->attributes) return null;
+        if (!$this->attributes || !array_key_exists($k, $this->attributes)) return null;
         return $this->attributes[$k];
     }
     public function getRelationships() { return $this->relationships ?: []; }
     public function getRelationship(string $k) {
-        if (!$this->relationships) return null;
+        if ($this->validRelationships && !in_array($k, $this->validRelationships)) throw new \UnknownRelationshipException("The relationship you've requested, `$k`, is not a valid relationship on this resource.");
+        if (!$this->relationships || !array_key_exists($k, $this->relationships)) return null;
         return $this->relationships[$k];
     }
 
