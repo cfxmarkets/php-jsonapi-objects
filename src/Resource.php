@@ -96,8 +96,8 @@ class Resource implements ResourceInterface {
     public function getRelationships() { return $this->relationships ?: []; }
     public function getRelationship(string $k) {
         if ($this->validRelationships && !in_array($k, $this->validRelationships)) throw new \UnknownRelationshipException("The relationship you've requested, `$k`, is not a valid relationship on this resource.");
-        if (!$this->relationships || !array_key_exists($k, $this->relationships)) return null;
-        return $this->relationships[$k];
+        if (!$this->relationships || !array_key_exists($k, $this->relationships)) $this->setRelationship($this->f->newJsonApiRelationship(['name' => $k]));
+        $this->relationships[$k];
     }
 
 
