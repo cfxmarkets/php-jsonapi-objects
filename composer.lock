@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "431fadbddae5f67e14ef2936334481ae",
+    "content-hash": "93390145a2b73e920fa6536fdf7b83ff",
     "packages": [
         {
             "name": "kael-shipman/php-std-traits",
-            "version": "v1.0.2",
+            "version": "v2.0.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:cfxmarkets/php-std-traits.git",
-                "reference": "a0df455a898673bfccb9082829fd8a4cb6a2df12"
+                "reference": "96aa1e64396979ef7bdb17854c50c0e02d3a59fb"
             },
             "require": {
                 "php": ">=5.4.0 < 7"
@@ -49,7 +49,7 @@
             "keywords": [
                 "traits"
             ],
-            "time": "2017-08-27T12:16:04+00:00"
+            "time": "2017-09-01T22:17:50+00:00"
         }
     ],
     "packages-dev": [
@@ -109,16 +109,16 @@
         },
         {
             "name": "kael-shipman/factory",
-            "version": "v3.1.0",
+            "version": "v3.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kael-shipman/php-factory.git",
-                "reference": "7b7e0c9f42bd14f43e46830f47727731935b21a2"
+                "reference": "a84b603371e6a36a4542372af6d36e123f725e19"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kael-shipman/php-factory/zipball/7b7e0c9f42bd14f43e46830f47727731935b21a2",
-                "reference": "7b7e0c9f42bd14f43e46830f47727731935b21a2",
+                "url": "https://api.github.com/repos/kael-shipman/php-factory/zipball/a84b603371e6a36a4542372af6d36e123f725e19",
+                "reference": "a84b603371e6a36a4542372af6d36e123f725e19",
                 "shasum": ""
             },
             "require": {
@@ -151,7 +151,7 @@
                 "factory",
                 "injector"
             ],
-            "time": "2017-08-24T15:25:41+00:00"
+            "time": "2017-08-28T23:45:16+00:00"
         },
         {
             "name": "phpdocumentor/reflection-docblock",
@@ -1015,7 +1015,7 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "v2.8.26",
+            "version": "v2.8.27",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
