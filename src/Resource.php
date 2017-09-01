@@ -2,7 +2,7 @@
 namespace KS\JsonApi;
 
 class Resource implements ResourceInterface {
-    use \KS\ErrorHandlerTrait;
+    use ErrorHandlerTrait;
 
     protected $f;
 
