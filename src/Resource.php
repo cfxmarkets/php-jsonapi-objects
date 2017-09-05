@@ -54,8 +54,11 @@ class Resource implements ResourceInterface {
         }
 
         if (is_array($this->validRelationships)) {
-            // `getRelationship` automatically creates an empty relationship for the given key if one doesn't exist
-            foreach($this->validRelationships as $rel) $this->getRelationship($rel);
+            foreach($this->validRelationships as $rel) {
+                // `getRelationship` automatically creates an empty relationship for the given key if one doesn't exist
+                $this->getRelationship($rel);
+                $this->validateRelationship($rel);
+            }
         }
 
         $this->initialized = $initialized;
