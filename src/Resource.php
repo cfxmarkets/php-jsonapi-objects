@@ -54,9 +54,8 @@ class Resource implements ResourceInterface {
         }
 
         if (is_array($this->validRelationships)) {
-            foreach($this->validRelationships as $rel) {
-                if (!$this->getRelationship($rel)) $this->setRelationship($this->f->newJsonApiRelationship(['name' => $rel, 'data' => null]));
-            }
+            // `getRelationship` automatically creates an empty relationship for the given key if one doesn't exist
+            foreach($this->validRelationships as $rel) $this->getRelationship($rel);
         }
 
         $this->initialized = $initialized;
