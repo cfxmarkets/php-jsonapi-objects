@@ -3,7 +3,7 @@ namespace KS\JsonApi;
 
 interface FactoryInterface {
     function newJsonApiDocument($data=null);
-    function newJsonApiResource($data=null, $initialized=true, $type=null);
+    function newJsonApiResource($data=null, $type=null);
     function newJsonApiRelationship($data);
     function newJsonApiError($data);
     function newJsonApiMeta($data=null);
