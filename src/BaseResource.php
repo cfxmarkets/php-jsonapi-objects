@@ -1,17 +1,15 @@
 <?php
 namespace KS\JsonApi;
 
-class BaseResource implements BaseResourceInterface {
+abstract class BaseResource implements BaseResourceInterface {
     use \KS\ErrorHandlerTrait;
 
     protected $f;
 
     protected $id;
-    protected $type;
-    protected $attributes;
-    protected $validAttributes = [];
-    protected $relationships;
-    protected $validRelationships = [];
+    protected $resourceType;
+    protected $attributes = [];
+    protected $relationships = [];
     protected $initialized;
 
 
@@ -19,47 +17,59 @@ class BaseResource implements BaseResourceInterface {
      * Constructs a Resource object
      *
      * If $data is provided, it is used to set fields. If $data contains a `type` field, it cannot conflict with any
-     * pre-set type or an Exception will be thrown. Similarly, any passed Relationships or Attributes cannot conflict
-     * with any pre-set values (i.e., you can't pass an arbitrary relationship if the given class has defined
-     * that it only accepts certain types of relationships).
+     * pre-set type or an Exception will be thrown.
      *
-     * If $initialized is true (default), then the object is assumed to be complete. If it is false, then it assumed
-     * to be a "ResourceIdentifier", i.e., an incomplete resource whose attributes and relationships may be fetched
-     * from persistence.
+     * You may define the valid attributes and relationships in the `$attributes` and `relationships` arrays. Attributes
+     * may have default values, though relationships may not. These are the arrays that are dumped when the object is
+     * serialized to JSON, so they should represent the object's *public* attributes and relationships. Any private
+     * attributes or relationships should be stored elsewhere.
+     *
+     * On initialization, this class merges incoming attributes and relationships with the ones given in the `$attributes`
+     * and `$relationships` arrays and uses them to set values via special `set*` methods. YOU ARE RESPONSIBLE FOR
+     * CREATING A `set*` METHOD FOR EACH ATTRIBUTE AND RELATIONSHIP THAT THE OBJECT CAN MANAGE, PUBLIC OR PRIVATE. If
+     * you do not create these methods, an Error will be thrown.
+     *
+     * You should make sure you do proper validation in these `set*` methods, since this will ensure that your resource
+     * is always aware of its errors.
+     *
+     * Given the following `$attributes` and `$relationships` arrays, set methods may look like this:
+     *
+     *     protected $attributes = [ 'name' => null, 'dob' => null, 'active' => true ];
+     *     protected $relationships = [ 'addresses', 'boss' ];
+     *
+     *     public function setName($name);
+     *     public function setDob($dob);
+     *     public function setActive($active);
+     *     public function setAddresses(RelationshipInterface $addresses);
+     *     public function setBoss(RelationshipInterface $boss);
+     *
+     *
+     * --------------------------------------------------------------------------------------------------------------
+     *
+     * `$initialized` is a field used to track whether or not this resource is in sync was initialized using data from
+     * a database. If $initialized is true (default), then the object is assumed to be complete. If it is false, then it is
+     * assumed to be a "ResourceIdentifier", i.e., an incomplete resource whose attributes and relationships may be fetched
+     * from persistence later.
      */
     public function __construct(FactoryInterface $f, $data=null) {
         $this->f = $f;
 
+        $attrs = [];
+        $rels = [];
         if ($data) {
             if (array_key_exists('id', $data)) $this->id = $data['id'];
             if (array_key_exists('type', $data)) {
-                if ($this->type && $data['type'] != $this->type) throw new \InvalidArgumentException("This Resource has a fixed type of `$this->type` that cannot be altered. (You passed a type of `$data[type]`.)");
-                $this->type = $data['type'];
+                if ($this->resourceType && $data['type'] != $this->resourceType) throw new \InvalidArgumentException("This Resource has a fixed type of `$this->resourceType` that cannot be altered. (You passed a type of `$data[type]`.)");
+                $this->resourceType = $data['type'];
             }
-            if (array_key_exists('attributes', $data)) {
-                foreach($data['attributes'] as $attr => $v) $this->setAttribute($attr, $v);
-            }
-            if (array_key_exists('relationships', $data) && count($data['relationships']) > 0) {
-                foreach($data['relationships'] as $rel => $obj) {
-                    $obj['name'] = $rel;
-                    $this->setRelationship($this->f->newJsonApiRelationship($obj));
-                }
-            }
+            if (array_key_exists('attributes', $data)) $attrs = $data['attributes'];
+            if (array_key_exists('relationships', $data)) $rels = $data['relationships'];
         }
 
-        if (is_array($this->validAttributes)) {
-            foreach($this->validAttributes as $attr) {
-                if (!$this->getAttribute($attr)) $this->setAttribute($attr, null);
-            }
-        }
+        $this->initializeAttributes($attrs);
+        $this->initializeRelationships($rels);
 
-        if (is_array($this->validRelationships)) {
-            foreach($this->validRelationships as $rel) {
-                // `getRelationship` automatically creates an empty relationship for the given key if one doesn't exist
-                $this->getRelationship($rel);
-                $this->validateRelationship($rel);
-            }
-        }
+        $this->initialized = false;
     }
 
     public static function restoreFromData(FactoryInterface $f, $data) {
@@ -68,24 +78,67 @@ class BaseResource implements BaseResourceInterface {
         return $obj;
     }
 
+    protected function initializeAttributes($initialAttrs=[]) {
+        // Merge attributes
+        $attrs = $this->attributes;
+        foreach($initialAttrs as $a => $v) $attrs[$a] = $v;
+
+        // Iterate through attributes and set
+        foreach($attrs as $k => $v) {
+            if (!is_string($k)) throw new \RuntimeException("You've passed an attribute with a non-string index (`$k` => `$v`). Attributes must be string-indexed, including default attributes. Example: `protected \$attributes = [ 'name' => null, 'dob' => null ]");
+            $setAttribute = "set".ucfirst($k);
+
+            // Don't have to check for valid attributes here, because this will throw an error if there's
+            // no valid setter found.
+            $this->$setAttribute($v);
+        }
+    }
+
+    protected function initializeRelationships($initialRels=[]) {
+        // Add missing required relationships as empty relationships
+        $rels = [];
+        foreach($this->relationships as $r) {
+            if (!is_string($r)) throw new \RuntimeException("You may only initialize relationships with an array of relationship names, since relationships may not have default values");
+            $rels[$r] = [ 'data' => null ];
+        }
+
+        foreach($initialRels as $n => $r) $rels[$n] = $r;
+
+        $this->relationships = [];
+
+        // Iterate through relationships and set
+        foreach($rels as $n => $r) {
+            $setRelationship = "set".ucfirst($n);
+
+            // Convert to relationship, if necessary
+            if (!($r instanceof RelationshipInterface)) {
+                $r['name'] = $n;
+                $r = $this->f->newJsonApiRelationship($r);
+            }
+
+            // Again, don't have to check for validity because it will throw errors
+            $this->$setRelationship($r);
+        }
+    }
+
     public function setId($id) {
         if ($this->id !== null && $id != $this->id) throw new DuplicateIdException("This resource already has an id. You cannot set a new ID for it.");
         $this->id = $id;
         return $this;
     }
 
-    public function getResourceType() { return $this->type; }
+    public function getResourceType() { return $this->resourceType; }
     public function getId() { return $this->id; }
 
     public function jsonSerialize($fullResource=true) {
         $data = [];
-        $data['type'] = $this->type;
+        $data['type'] = $this->resourceType;
         $data['id'] = $this->id;
 
         if (!$fullResource) return $data;
 
-        if ($this->attributes) $data['attributes'] = $this->attributes;
-        if ($this->relationships) {
+        if (count($this->attributes) > 0) $data['attributes'] = $this->attributes;
+        if (count($this->relationships) > 0) {
             $data['relationships'] = [];
             foreach($this->relationships as $r) $data['relationships'][$r->getName()] = $r;
         }
