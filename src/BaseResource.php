@@ -1,17 +1,17 @@
 <?php
 namespace KS\JsonApi;
 
-class Resource implements ResourceInterface {
-    use ErrorHandlerTrait;
+class BaseResource implements BaseResourceInterface {
+    use \KS\ErrorHandlerTrait;
 
     protected $f;
 
     protected $id;
     protected $type;
     protected $attributes;
-    protected $validAttributes;
+    protected $validAttributes = [];
     protected $relationships;
-    protected $validRelationships;
+    protected $validRelationships = [];
     protected $initialized;
 
 
@@ -27,7 +27,7 @@ class Resource implements ResourceInterface {
      * to be a "ResourceIdentifier", i.e., an incomplete resource whose attributes and relationships may be fetched
      * from persistence.
      */
-    public function __construct(FactoryInterface $f, $data=null, $initialized=true) {
+    public function __construct(FactoryInterface $f, $data=null) {
         $this->f = $f;
 
         if ($data) {
@@ -60,8 +60,12 @@ class Resource implements ResourceInterface {
                 $this->validateRelationship($rel);
             }
         }
+    }
 
-        $this->initialized = $initialized;
+    public static function restoreFromData(FactoryInterface $f, $data) {
+        $obj = new static($f, $data, true);
+        $obj->initialized = true;
+        return $obj;
     }
 
     public function setId($id) {
@@ -70,53 +74,8 @@ class Resource implements ResourceInterface {
         return $this;
     }
 
-    public function setAttribute($attr, $val) {
-        if ($this->validAttributes && !in_array($attr, $this->validAttributes)) throw new \InvalidArgumentException("Invalid attribute passed: This resource has defined a set of valid attributes which does not include `$attr`. Valid attributes are ".implode(', ', $this->validAttributes).".");
-        if (!$this->attributes) $this->attributes = [];
-        $this->attributes[$attr] = $val;
-        $this->validateAttribute($attr);
-    }
-
-    public function setRelationship(Relationship $r) {
-        if ($this->validRelationships && !in_array($r->getName(), $this->validRelationships)) throw new \InvalidArgumentException("Invalid relationship passed: This resource has defined a set of valid relationships which does not include `{$r->getName()}`. Valid relationships are ".implode(', ', $this->validRelationships).".");
-        if (!$this->relationships) $this->relationships = [];
-        $this->relationships[$r->getName()] = $r;
-        $this->validateRelationship($r->getName());
-    }
-
-
-
-
-
     public function getResourceType() { return $this->type; }
     public function getId() { return $this->id; }
-    public function getAttributes() { return $this->attributes ?: []; }
-    public function getAttribute($k) {
-        if (!$this->attributes || !array_key_exists($k, $this->attributes)) return null;
-        return $this->attributes[$k];
-    }
-    public function getRelationships() { return $this->relationships ?: []; }
-    public function getRelationship($k) {
-        if ($this->validRelationships && !in_array($k, $this->validRelationships)) throw new \UnknownRelationshipException("The relationship you've requested, `$k`, is not a valid relationship on this resource.");
-        if (!$this->relationships || !array_key_exists($k, $this->relationships)) $this->setRelationship($this->f->newJsonApiRelationship(['name' => $k]));
-        return $this->relationships[$k];
-    }
-
-
-
-
-
-
-    public function validateRelationship($rel) {
-    }
-
-    public function validateAttribute($field) {
-    }
-
-    public function validateResource() {
-    }
-
-
 
     public function jsonSerialize($fullResource=true) {
         $data = [];

@@ -2,8 +2,8 @@
 
 use \KS\JsonApi\Document;
 use \KS\JsonApi\DocumentInterface;
-use \KS\JsonApi\Resource;
-use \KS\JsonApi\ResourceInterface;
+use \KS\JsonApi\GenericResource;
+use \KS\JsonApi\GenericResourceInterface;
 use \KS\JsonApi\ResourceCollection;
 use \KS\JsonApi\ResourceCollectionInterface;
 use \KS\JsonApi\Error;
@@ -26,7 +26,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
     public function testDocumentInterface() {
         $doc = new Document(Factory::getInstance());
         $doc->setData(new ResourceCollection([
-            new Resource(Factory::getInstance(), [
+            new GenericResource(Factory::getInstance(), [
                 'type' => 'test',
                 'id' => '1',
                 'attributes' => [
@@ -35,7 +35,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
             ]),
         ]));
 
-        $doc->setData(new Resource(Factory::getInstance(), [
+        $doc->setData(new GenericResource(Factory::getInstance(), [
             'type' => 'test',
             'id' => '1',
             'attributes' => [
@@ -57,7 +57,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
             'version' => '1.0'
         ]);
 
-        $this->assertTrue($doc->getData() instanceof ResourceInterface);
+        $this->assertTrue($doc->getData() instanceof GenericResourceInterface);
         $this->assertTrue($doc->getErrors() instanceof ErrorsCollectionInterface);
         $this->assertTrue($doc->getLinks() instanceof LinksCollectionInterface);
         $this->assertTrue($doc->getLink('self') instanceof LinkInterface);

@@ -2,7 +2,7 @@
 namespace Test;
 
 class TestErrorHandler {
-    use \KS\JsonApi\ErrorHandlerTrait;
+    use \KS\ErrorHandlerTrait;
 
     public function produceError($field, $errorType=null, \KS\JsonApi\ErrorInterface $error, $new=false) {
         if ($new) $this->clearError($field);

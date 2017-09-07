@@ -8,7 +8,7 @@ trait FactoryTrait {
 
     function newJsonApiResource($data=null, $initialized=true, $type=null) {
         if ($type !== null) throw new UnknownResourceTypeException("Type `$type` is unknown. You can handle this type by overriding the `newJsonApiResource` method in your factory and adding a handler for the type there.");
-        return $this->instantiate("\\KS\\JsonApi\\Resource", [$this, $data, $initialized]);
+        return $this->instantiate("\\KS\\JsonApi\\GenericResource", [$this, $data, $initialized]);
     }
 
     function newJsonApiRelationship($data) {
