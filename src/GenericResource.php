@@ -2,6 +2,22 @@
 namespace KS\JsonApi;
 
 class GenericResource extends BaseResource implements GenericResourceInterface {
+    protected $validAttributes;
+    protected $validRelationships;
+
+    public function __construct(FactoryInterface $f, array $props=null, array $validAttributes=null, array $validRelationships=null) {
+        if ($validAttributes) $this->validAttributes = $validAttributes;
+        if ($validRelationships) $this->validRelationships = $validRelationships;
+        return parent::__construct($f, $props);
+    }
+
+    public static function restoreFromData(FactoryInterface $f, array $data, array $validAttributes=null, array $validRelationships=null) {
+        $obj = new static($f, $data, $validAttributes, $validRelationships);
+        $obj->initialized = true;
+        return $obj;
+    }
+        
+
     protected function initializeAttributes(array $initialAttrs=[]) {
         // Merge attributes
         $attrs = $this->attributes;

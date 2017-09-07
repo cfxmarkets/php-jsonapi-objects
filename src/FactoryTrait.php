@@ -6,9 +6,15 @@ trait FactoryTrait {
         return $this->instantiate("\\KS\\JsonApi\\Document", [$this, $data]);
     }
 
-    function newJsonApiResource(array $data=null, bool $initialized=true, string $type=null) {
+    function newJsonApiResource(array $data=null, string $type=null) {
         if ($type !== null) throw new UnknownResourceTypeException("Type `$type` is unknown. You can handle this type by overriding the `newJsonApiResource` method in your factory and adding a handler for the type there.");
-        return $this->instantiate("\\KS\\JsonApi\\GenericResource", [$this, $data, $initialized]);
+        $currentArgs = func_get_args();
+        $args = [$this];
+        for($i = 0; $i < count($currentArgs); $i++) {
+            if ($i == 1) continue;
+            $args[] = $currentArgs[$i];
+        }
+        return $this->instantiate("\\KS\\JsonApi\\GenericResource", $args);
     }
 
     function newJsonApiRelationship(array $data) {

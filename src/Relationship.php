@@ -18,10 +18,10 @@ class Relationship implements RelationshipInterface {
         if (!array_key_exists('data', $data)) $data['data'] = null;
 
         if ($data['data'] === null) $this->data = null;
-        elseif (array_key_exists('id', $data['data'])) $this->data = $this->f->newJsonApiResource($data['data'], false, $data['type']);
+        elseif (array_key_exists('id', $data['data'])) $this->data = $this->f->newJsonApiResource($data['data'], $data['type']);
         else {
             $rc = $this->data = $this->f->newJsonApiResourceCollection();
-            foreach($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, false, $r['type']);
+            foreach($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, $r['type']);
         }
 
         if (array_key_exists('links', $data)) $this->links = $data['links'];

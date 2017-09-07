@@ -73,7 +73,7 @@ abstract class BaseResource implements BaseResourceInterface {
     }
 
     public static function restoreFromData(FactoryInterface $f, array $data) {
-        $obj = new static($f, $data, true);
+        $obj = new static($f, $data);
         $obj->initialized = true;
         return $obj;
     }

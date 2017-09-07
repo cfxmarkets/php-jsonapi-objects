@@ -27,11 +27,11 @@ class Document implements DocumentInterface {
                     $isCollection = is_numeric(implode('', array_keys($data['data'])));
                     if ($isCollection) {
                         $rc = $this->f->newJsonApiResourceCollection();
-                        foreach ($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, true, $r['type']);
+                        foreach ($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, $r['type']);
                         $this->data = $rc;
                     } else {
                         if (!array_key_exists('type', $data['data'])) throw new \InvalidArgumentException("If you provide a resource via the `data` key, you MUST specify its type via the `data::type` key (e.g., [ 'data' => [ 'type' => 'my-resources', 'attributes' => [ ... ] ] ]).");
-                        $this->data = $this->f->newJsonApiResource($data['data'], true, $data['data']['type']);
+                        $this->data = $this->f->newJsonApiResource($data['data'], $data['data']['type']);
                     }
                 } else {
                     throw new \InvalidArgumentException("Malformed `data` object in initial data array.");
@@ -77,7 +77,7 @@ class Document implements DocumentInterface {
             if (array_key_exists('included', $data)) {
                 if (!is_array($data['included'])) throw new \InvalidArgumentException("If you pass an array of included resources, it must be an array, not an object or string or null or anything else.");
                 $this->included = $this->f->newJsonApiResourceCollection();
-                foreach($data['included'] as $r) $this->included[] = $this->f->newJsonApiResource($r, true, $r['type']);
+                foreach($data['included'] as $r) $this->included[] = $this->f->newJsonApiResource($r, $r['type']);
             }
         }
     }
