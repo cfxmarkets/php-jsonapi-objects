@@ -22,7 +22,7 @@ class Document implements DocumentInterface {
 
             if (array_key_exists('data', $data)) {
                 if ($data['data'] === null) $this->data = null;
-                elseif ($data['data'] instanceof Resource || $data['data'] instanceof ResourceCollection) $this->data = $data['data'];
+                elseif ($data['data'] instanceof BaseResourceInterface || $data['data'] instanceof ResourceCollectionInterface) $this->data = $data['data'];
                 elseif (is_array($data['data'])) {
                     $isCollection = is_numeric(implode('', array_keys($data['data'])));
                     if ($isCollection) {
@@ -97,7 +97,7 @@ class Document implements DocumentInterface {
 
 
     public function setData($data) {
-        if (!($data instanceof ResourceInterface) && !($data instanceof ResourceCollectionInterface)) throw new \InvalidArgumentException("Data must be either a Resource or a ResourceCollection");
+        if (!($data instanceof BaseResourceInterface) && !($data instanceof ResourceCollectionInterface)) throw new \InvalidArgumentException("Data must be either a BaseResource or a ResourceCollection");
         $this->data = $data;
         return $this;
     }

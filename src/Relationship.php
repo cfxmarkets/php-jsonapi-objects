@@ -33,6 +33,11 @@ class Relationship implements RelationshipInterface {
     public function getMeta() { return $this->meta; }
     public function getData() { return $this->data; }
 
+    public function setData(BaseResourceInterface $d=null) {
+        $this->data = $d;
+        return $this;
+    }
+
     public function getMemberName() { return $this->getName(); }
 
     public function jsonSerialize() {

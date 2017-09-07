@@ -6,8 +6,11 @@ class Factory extends \KS\Factory implements \KS\JsonApi\FactoryInterface {
         newJsonApiResource as newGenericJsonApiResource;
     }
 
+    /**
+     * Stub this out so that we return a GenericResource for any requested type
+     */
     public function newJsonApiResource(array $data=null, bool $initialized=true, string $type=null) {
-        return $this->instantiate("\\KS\\JsonApi\\Resource", [$this, $data, $initialized]);
+        return $this->instantiate("\\KS\\JsonApi\\GenericResource", [$this, $data, $initialized]);
     }
 
     protected function injectServices($obj) {
