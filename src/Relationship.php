@@ -33,7 +33,16 @@ class Relationship implements RelationshipInterface {
     public function getMeta() { return $this->meta; }
     public function getData() { return $this->data; }
 
-    public function setData(BaseResourceInterface $d=null) {
+    public function setData($d=null) {
+        // Typecheck
+        if ($d !== null) {
+            if (!($d instanceof BaseResourceInterface) && !($d instanceof ResourceCollectionInterface)) {
+                $type = gettype($d);
+                if ($type == 'object') $type = get_class($d);
+                throw \InvalidArgumentException("Value passed to `setData` must be either a Resource (`BaseResourceInterface`), a Resource Collection (`ResourceCollectionInterface`), or null. (`$type` given)");
+            }
+        }
+
         $this->data = $d;
         return $this;
     }

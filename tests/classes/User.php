@@ -14,12 +14,12 @@ class User extends \KS\JsonApi\BaseResource {
         $this->attributes['dob'] = $val;
     }
 
-    public function setFriends(\KS\JsonApi\RelationshipInterface $r) {
-        $this->relationships[$r->getName()] = $r;
+    public function setFriends(\KS\JsonApi\ResourceCollectionInterface $r=null) {
+        $this->relationships['friends']->setData($r);
     }
 
-    public function setBoss(\KS\JsonApi\RelationshipInterface $r) {
-        $this->relationships[$r->getName()] = $r;
+    public function setBoss(\KS\JsonApi\BaseResourceInterface $r=null) {
+        $this->relationships['boss']->setData($r);
     }
 
     public function getName() { return $this->attributes['name']; }

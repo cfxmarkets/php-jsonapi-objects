@@ -40,8 +40,8 @@ abstract class BaseResource implements BaseResourceInterface {
      *     public function setName($name);
      *     public function setDob($dob);
      *     public function setActive($active);
-     *     public function setAddresses(RelationshipInterface $addresses);
-     *     public function setBoss(RelationshipInterface $boss);
+     *     public function setAddresses(AddressInterface $addresses);
+     *     public function setBoss(PersonInterface $boss);
      *
      *
      * --------------------------------------------------------------------------------------------------------------
@@ -116,8 +116,10 @@ abstract class BaseResource implements BaseResourceInterface {
                 $r = $this->f->newJsonApiRelationship($r);
             }
 
-            // Again, don't have to check for validity because it will throw errors
-            $this->$setRelationship($r);
+            // Set relationship (don't have to check for validity because it will throw errors if the `set[Relationship]`
+            // method doesn't exist)
+            $this->relationships[$n] = $r;
+            $this->$setRelationship($r->getData());
         }
     }
 
