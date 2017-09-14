@@ -10,7 +10,8 @@ abstract class BaseResource implements BaseResourceInterface {
     protected $resourceType;
     protected $attributes = [];
     protected $relationships = [];
-    protected $initialized;
+    protected $initialized = false;
+    protected $relationshipsInitialized = [];
 
 
     /**
@@ -68,8 +69,6 @@ abstract class BaseResource implements BaseResourceInterface {
 
         $this->initializeAttributes($attrs);
         $this->initializeRelationships($rels);
-
-        $this->initialized = false;
     }
 
     public static function restoreFromData(FactoryInterface $f, $data) {
@@ -95,14 +94,22 @@ abstract class BaseResource implements BaseResourceInterface {
     }
 
     protected function initializeRelationships($initialRels=[]) {
-        // Add missing required relationships as empty relationships
+        // Initialize required relationships as empty relationships
         $rels = [];
-        foreach($this->relationships as $r) {
-            if (!is_string($r)) throw new \RuntimeException("You may only initialize relationships with an array of relationship names, since relationships may not have default values");
-            $rels[$r] = [ 'data' => null ];
+        foreach($this->relationships as $k => $r) {
+            if (is_int($k)) {
+                $k = $r;
+                $r = [ 'data' => null ];
+            }
+            $rels[$k] = $r;
         }
 
-        foreach($initialRels as $n => $r) $rels[$n] = $r;
+        // Overwrite default required relationships with passed-in relationships
+        foreach($initialRels as $n => $r) {
+            // Mark passed in relationships as "initialized"
+            if (!in_array($n, $this->initializedRelationships)) $this->initializedRelationships[] = $n;
+            $rels[$n] = $r;
+        }
 
         $this->relationships = [];
 
