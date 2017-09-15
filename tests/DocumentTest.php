@@ -53,22 +53,17 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
             'item2' => 2,
         ]));
 
-        $doc->setJsonapi([
-            'version' => '1.0'
-        ]);
-
         $this->assertTrue($doc->getData() instanceof GenericResourceInterface);
         $this->assertTrue($doc->getErrors() instanceof ErrorsCollectionInterface);
         $this->assertTrue($doc->getLinks() instanceof LinksCollectionInterface);
         $this->assertTrue($doc->getLink('self') instanceof LinkInterface);
-        $this->assertTrue(is_array($doc->getJsonapi()));
         $this->assertTrue($doc->getMeta() instanceof MetaInterface);
 
         $struct = [
             'data' => $doc->getData(),
             'links' => $doc->getLinks(),
             'meta' => $doc->getMeta(),
-            'jsonapi' => $doc->getJsonapi(),
+            'jsonapi' => [ 'version' => '1.0' ],
         ];
 
         $this->assertEquals(json_encode($struct), json_encode($doc));
@@ -83,7 +78,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
             'errors' => $doc->getErrors(),
             'links' => $doc->getLinks(),
             'meta' => $doc->getMeta(),
-            'jsonapi' => $doc->getJsonapi(),
+            'jsonapi' => [ 'version' => '1.0' ],
         ];
 
         $this->assertEquals(json_encode($struct), json_encode($doc));
