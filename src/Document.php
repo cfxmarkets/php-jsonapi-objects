@@ -2,12 +2,13 @@
 namespace KS\JsonApi;
 
 class Document implements DocumentInterface {
+    protected $version = "1.0";
+
     protected $f;
     protected $data;
     protected $errors;
     protected $links;
     protected $meta;
-    protected $jsonapi;
     protected $included;
 
     public function __construct(FactoryInterface $f, array $data=null) {
@@ -69,11 +70,6 @@ class Document implements DocumentInterface {
                 else $this->meta = $this->f->newJsonApiMeta($data['meta']);
             }
 
-            if (array_key_exists('jsonapi', $data)) {
-                // TODO: Validate jsonapi object
-                $this->jsonapi = $data['jsonapi'];
-            }
-
             if (array_key_exists('included', $data)) {
                 if (!is_array($data['included'])) throw new \InvalidArgumentException("If you pass an array of included resources, it must be an array, not an object or string or null or anything else.");
                 $this->included = $this->f->newJsonApiResourceCollection();
@@ -91,7 +87,6 @@ class Document implements DocumentInterface {
         else return null;
     }
     public function getMeta() { return $this->meta; }
-    public function getJsonapi() { return $this->jsonapi; }
 
 
 
@@ -119,11 +114,6 @@ class Document implements DocumentInterface {
         return $this;
     }
 
-    public function setJsonapi(array $jsonapi) {
-        $this->jsonapi = $jsonapi;
-        return $this;
-    }
-
 
 
 
@@ -134,7 +124,8 @@ class Document implements DocumentInterface {
 
         if ($this->links) $data['links'] = $this->links;
         if ($this->meta) $data['meta'] = $this->meta;
-        if ($this->jsonapi) $data['jsonapi'] = $this->jsonapi;
+
+        $data['jsonapi'] = [ 'version' => $this->version, ];
 
         return $data;
     }

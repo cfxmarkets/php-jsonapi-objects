@@ -37,6 +37,7 @@ class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
     public function testCorrectlyReserializesJsonApiDoc() {
         $struct = TestData::get('data');
         $struct['links'] = TestData::get('links')['links'];
+        $struct['jsonapi'] = [ 'version' => '1.0' ];
         $doc = new japi\Document($this->f(), $struct);
         $this->assertEquals(json_encode($struct), json_encode($doc));
     }

@@ -3,24 +3,35 @@ namespace KS\JsonApi;
 
 trait Rel2MTrait {
     protected function add2MRel(string $name, BaseResourceInterface $resource) {
+        if (!in_array($name, $this->initializedRelationships)) throw new UninitializedRelationshipException("You have not yet initialized the to-many relationship `$name`. You must initialize this relationship before using it.");
         if (!$this->has2MRel($resource)) $this->relationships[$name]->getData()[] = $resource;
         return $this;
     }
     protected function has2MRel(string $name, BaseResourceInterface $resource=null) {
-        if (!$resource || !$this->relationships[$name]->getData()) return false;
-        foreach($this->relationships[$name]->getData() as $test) {
-            if ($test->getId() == $resource->getId() && $test->getResourceType() == $resource->getResourceType()) return true;
+        if (!in_array($name, $this->initializedRelationships)) throw new UninitializedRelationshipException("You have not yet initialized the to-many relationship `$name`. You must initialize this relationship before using it.");
+        try {
+            $index = $this->indexOf2MRel($name, $resource);
+            return $index !== false;
+        } catch (CollectionUndefinedIndexException $e) {
+            return false;
         }
-        return false;
     }
-    protected function remove2MRel(string $name, BaseResourceInterface $resource) {
-        if (!$this->relationships[$name]->getData()) return;
-        foreach($this->relationships[$name]->getData() as $k => $test) {
-            if ($test->getId() == $resource->getId() && $test->getResourceType() == $resource->getResourceType()) {
-                unset($this->relationships[$name]->getData()[$k]);
-                break;
+    protected function indexOf2MRel(string $name, BaseResourceInterface $resource=null) {
+        if ($resource && $this->relationships[$name]->getData()) {
+            foreach($this->relationships[$name]->getData() as $k => $test) {
+                if ($test->getId() == $resource->getId() && $test->getResourceType() == $resource->getResourceType()) return $k;
             }
         }
+        throw new CollectionUndefinedIndexException("Resource is not in collection");
+    }
+    protected function remove2MRel(string $name, BaseResourceInterface $resource) {
+        try {
+            $index = $this->indexOf2MRel($name, $resource);
+            unset($this->relationships[$name]->getData()[$index]);
+        } catch (CollectionUndefinedIndexException $e) {
+            // Nothing to do if not in collection
+        }
+        return;
     }
 }
 

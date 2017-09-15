@@ -7,11 +7,9 @@ interface DocumentInterface extends \JsonSerializable {
     function getLinks();
     function getLink(string $name);
     function getMeta();
-    function getJsonapi();
     function setData($data);
     function addError(ErrorInterface $e);
     function addLink(LinkInterface $l);
     function setMeta(MetaInterface $m);
-    function setJsonapi(array $jsonapi);
 }
 

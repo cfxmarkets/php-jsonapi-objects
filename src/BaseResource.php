@@ -4,17 +4,30 @@ namespace KS\JsonApi;
 abstract class BaseResource implements BaseResourceInterface {
     use \KS\ErrorHandlerTrait;
 
+    /** This resource's instance of Factory **/
     protected $f;
 
+    /** Fields that match with JSON-API Resource fields **/
     protected $id;
     protected $resourceType;
     protected $attributes = [];
     protected $relationships = [];
-    protected $initialized;
+
+    /**
+     * Fields to track relationship to database.
+     *
+     * Generally, `$initialized` should be false when this is a new object or a resource identifier. If the resource
+     * was inflated from persistence, $initialized should be true. Because resources may have complex relationships
+     * wth other resources, the field `$relationshipsInitialized` may be used to track which to-many relationships
+     * have been initialized. The `BaseResource` class doesn't make any accommodations for the implementation of this
+     * logic, but understands that such functionality may be desireable.
+     */
+    protected $initialized = false;
+    protected $initializedRelationships = [];
 
 
     /**
-     * Constructs a Resource object
+     * Constructor: constructs a Resource object
      *
      * If $data is provided, it is used to set fields. If $data contains a `type` field, it cannot conflict with any
      * pre-set type or an Exception will be thrown.
@@ -40,16 +53,12 @@ abstract class BaseResource implements BaseResourceInterface {
      *     public function setName($name);
      *     public function setDob($dob);
      *     public function setActive($active);
-     *     public function setAddresses(AddressInterface $addresses);
+     *     public function setAddresses(ResourceCollectionInterface $addresses);
+     *     public function addAddress(AddressInterface $address);
+     *     public function hasAddress(AddressInterface $address);
+     *     public function removeAddress(AddressInterface $address);
      *     public function setBoss(PersonInterface $boss);
      *
-     *
-     * --------------------------------------------------------------------------------------------------------------
-     *
-     * `$initialized` is a field used to track whether or not this resource is in sync was initialized using data from
-     * a database. If $initialized is true (default), then the object is assumed to be complete. If it is false, then it is
-     * assumed to be a "ResourceIdentifier", i.e., an incomplete resource whose attributes and relationships may be fetched
-     * from persistence later.
      */
     public function __construct(FactoryInterface $f, array $data=null) {
         $this->f = $f;
@@ -68,8 +77,6 @@ abstract class BaseResource implements BaseResourceInterface {
 
         $this->initializeAttributes($attrs);
         $this->initializeRelationships($rels);
-
-        $this->initialized = false;
     }
 
     public static function restoreFromData(FactoryInterface $f, array $data) {
@@ -95,14 +102,22 @@ abstract class BaseResource implements BaseResourceInterface {
     }
 
     protected function initializeRelationships(array $initialRels=[]) {
-        // Add missing required relationships as empty relationships
+        // Initialize required relationships as empty relationships
         $rels = [];
-        foreach($this->relationships as $r) {
-            if (!is_string($r)) throw new \RuntimeException("You may only initialize relationships with an array of relationship names, since relationships may not have default values");
-            $rels[$r] = [ 'data' => null ];
+        foreach($this->relationships as $k => $r) {
+            if (is_int($k)) {
+                $k = $r;
+                $r = [ 'data' => null ];
+            }
+            $rels[$k] = $r;
         }
 
-        foreach($initialRels as $n => $r) $rels[$n] = $r;
+        // Overwrite default required relationships with passed-in relationships
+        foreach($initialRels as $n => $r) {
+            // Mark passed in relationships as "initialized"
+            if (!in_array($n, $this->initializedRelationships)) $this->initializedRelationships[] = $n;
+            $rels[$n] = $r;
+        }
 
         $this->relationships = [];
 
