@@ -5,7 +5,7 @@ use \Test\Factory;
 
 class ResourceTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateEmptyResource() {
-        $f = Factory::getInstance();
+        $f = new Factory();
         $t = new GenericResource($f);
         $this->assertTrue($t instanceof \KS\JsonApi\GenericResourceInterface, "Should instantiate a valid GenericResource object");
     }
@@ -39,7 +39,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $f = Factory::getInstance();
+        $f = new Factory();
 
         $t = new \Test\User($f, $data);
 
@@ -64,7 +64,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $f = Factory::getInstance();
+        $f = new Factory();
 
         try {
             $t = new \Test\User($f, $data);
@@ -105,7 +105,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $f = Factory::getInstance();
+        $f = new Factory();
 
         try {
             $t = new \Test\User($f, $data);
@@ -145,7 +145,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $f = Factory::getInstance();
+        $f = new Factory();
 
         $t = new \Test\User($f, $data);
 

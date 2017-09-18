@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "b2f5a9317fc65dd1cd4fece0bd682f85",
+    "content-hash": "fed7305458a24948707f895dd2ce7e25",
     "packages": [
         {
             "name": "kael-shipman/php-std-traits",
-            "version": "v3.0.0",
+            "version": "v3.2.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:cfxmarkets/php-std-traits.git",
-                "reference": "268309a766b3b292fb02e1bb0f7f267c9fc1f9d7"
+                "reference": "a1183972b0291cb22907e28bee4bf82da51b6fb3"
             },
             "require": {
                 "php": ">=5.4.0 < 7"
@@ -49,7 +49,7 @@
             "keywords": [
                 "traits"
             ],
-            "time": "2017-09-07T18:19:49+00:00"
+            "time": "2017-09-15T22:48:30+00:00"
         }
     ],
     "packages-dev": [
@@ -106,52 +106,6 @@
                 "instantiate"
             ],
             "time": "2015-06-14T21:17:01+00:00"
-        },
-        {
-            "name": "kael-shipman/factory",
-            "version": "v3.1.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/kael-shipman/php-factory.git",
-                "reference": "a84b603371e6a36a4542372af6d36e123f725e19"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/kael-shipman/php-factory/zipball/a84b603371e6a36a4542372af6d36e123f725e19",
-                "reference": "a84b603371e6a36a4542372af6d36e123f725e19",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.4"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "~4.8.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "KS\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL3"
-            ],
-            "authors": [
-                {
-                    "name": "Kael Shipman",
-                    "email": "kael.shipman@gmail.com",
-                    "homepage": "https://colors.kaelshipman.me",
-                    "role": "Developer"
-                }
-            ],
-            "description": "A class that provides overridable instantiation of classes through declarative method calls.",
-            "keywords": [
-                "dependency injection",
-                "factory",
-                "injector"
-            ],
-            "time": "2017-08-28T23:45:16+00:00"
         },
         {
             "name": "phpdocumentor/reflection-docblock",

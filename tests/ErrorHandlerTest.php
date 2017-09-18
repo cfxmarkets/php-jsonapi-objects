@@ -4,7 +4,7 @@ use \KS\JsonApi\Error;
 
 class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
     public function testErrors() {
-        $f = \Test\Factory::getInstance();
+        $f = new \Test\Factory();
         $t = new \Test\TestErrorHandler();
 
         $this->assertFalse($t->hasErrors());
