@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "fda10092a8223c189cd5a0197400f51e",
+    "content-hash": "429204cb2a8d80a3d7b861f95b3b8fb9",
     "packages": [
         {
             "name": "kael-shipman/php-std-traits",
-            "version": "v3.0.0",
+            "version": "v3.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kael-shipman/php-std-traits.git",
-                "reference": "30ac5b95ba51a26b12d3cd5e799d21785c3449c6"
+                "reference": "5e0e8d39c887d2c900bde414fb3add5c39539ffc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kael-shipman/php-std-traits/zipball/30ac5b95ba51a26b12d3cd5e799d21785c3449c6",
-                "reference": "30ac5b95ba51a26b12d3cd5e799d21785c3449c6",
+                "url": "https://api.github.com/repos/kael-shipman/php-std-traits/zipball/5e0e8d39c887d2c900bde414fb3add5c39539ffc",
+                "reference": "5e0e8d39c887d2c900bde414fb3add5c39539ffc",
                 "shasum": ""
             },
             "require": {
@@ -51,7 +51,7 @@
             "keywords": [
                 "traits"
             ],
-            "time": "2017-09-07T18:16:53+00:00"
+            "time": "2017-09-15T22:44:20+00:00"
         }
     ],
     "packages-dev": [
@@ -111,16 +111,16 @@
         },
         {
             "name": "kael-shipman/factory",
-            "version": "v5.0.1",
+            "version": "v5.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kael-shipman/php-factory.git",
-                "reference": "8b701e4a5a4d6440e016dc41e53219e8989d564c"
+                "reference": "85c6dfb0d68a70fa510c2b7381b913cccae1ee63"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kael-shipman/php-factory/zipball/8b701e4a5a4d6440e016dc41e53219e8989d564c",
-                "reference": "8b701e4a5a4d6440e016dc41e53219e8989d564c",
+                "url": "https://api.github.com/repos/kael-shipman/php-factory/zipball/85c6dfb0d68a70fa510c2b7381b913cccae1ee63",
+                "reference": "85c6dfb0d68a70fa510c2b7381b913cccae1ee63",
                 "shasum": ""
             },
             "require": {
@@ -153,7 +153,8 @@
                 "factory",
                 "injector"
             ],
-            "time": "2017-08-28T23:44:41+00:00"
+            "abandoned": true,
+            "time": "2017-09-12T16:18:06+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -301,16 +302,16 @@
         },
         {
             "name": "phpdocumentor/reflection-common",
-            "version": "1.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpDocumentor/ReflectionCommon.git",
-                "reference": "144c307535e82c8fdcaacbcfc1d6d8eeb896687c"
+                "reference": "21bdeb5f65d7ebf9f43b1b25d404f87deab5bfb6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/ReflectionCommon/zipball/144c307535e82c8fdcaacbcfc1d6d8eeb896687c",
-                "reference": "144c307535e82c8fdcaacbcfc1d6d8eeb896687c",
+                "url": "https://api.github.com/repos/phpDocumentor/ReflectionCommon/zipball/21bdeb5f65d7ebf9f43b1b25d404f87deab5bfb6",
+                "reference": "21bdeb5f65d7ebf9f43b1b25d404f87deab5bfb6",
                 "shasum": ""
             },
             "require": {
@@ -351,7 +352,7 @@
                 "reflection",
                 "static analysis"
             ],
-            "time": "2015-12-27T11:43:31+00:00"
+            "time": "2017-09-11T18:02:19+00:00"
         },
         {
             "name": "phpdocumentor/reflection-docblock",

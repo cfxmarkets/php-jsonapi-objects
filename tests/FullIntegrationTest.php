@@ -50,5 +50,5 @@ class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
 
 
 
-    protected function f() { return \Test\Factory::getInstance(); }
+    protected function f() { return new \Test\Factory(); }
 }

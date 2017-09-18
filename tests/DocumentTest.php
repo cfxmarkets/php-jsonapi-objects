@@ -19,14 +19,14 @@ use \Test\Factory;
 
 class DocumentTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateBlankDoc() {
-        $doc = new Document(Factory::getInstance());
+        $doc = new Document(new Factory());
         $this->assertTrue($doc instanceof \KS\JsonApi\DocumentInterface, "Correct: Shouldn't have thrown an error");
     }
 
     public function testDocumentInterface() {
-        $doc = new Document(Factory::getInstance());
+        $doc = new Document(new Factory());
         $doc->setData(new ResourceCollection([
-            new GenericResource(Factory::getInstance(), [
+            new GenericResource(new Factory(), [
                 'type' => 'test',
                 'id' => '1',
                 'attributes' => [
@@ -35,7 +35,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
             ]),
         ]));
 
-        $doc->setData(new GenericResource(Factory::getInstance(), [
+        $doc->setData(new GenericResource(new Factory(), [
             'type' => 'test',
             'id' => '1',
             'attributes' => [
@@ -43,7 +43,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
             ]
         ]));
 
-        $doc->addLink(new Link(Factory::getInstance(), [
+        $doc->addLink(new Link(new Factory(), [
             'name' => 'self',
             'href' => '/test/link',
         ]));
@@ -68,7 +68,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
 
         $this->assertEquals(json_encode($struct), json_encode($doc));
 
-        $doc->addError(new Error(Factory::getInstance(), [
+        $doc->addError(new Error(new Factory(), [
             'status' => 400,
             'title' => 'Invalid Data',
             'detail' => 'Malformed entry',
