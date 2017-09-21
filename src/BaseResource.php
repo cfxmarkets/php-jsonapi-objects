@@ -79,12 +79,71 @@ abstract class BaseResource implements BaseResourceInterface {
         $this->initializeRelationships($rels);
     }
 
+
+    /**
+     * Restore an object from data persisted to a secure datasource
+     *
+     * This just creates  new object and then marks it as initilized from the database
+     *
+     * @param FactoryInterface $factory A factory with which to inflate child objects
+     * @param array $data An array of json-api-formatted data to inflate.
+     * @return static
+     */
     public static function restoreFromData(FactoryInterface $f, array $data) {
         $obj = new static($f, $data);
         $obj->initialized = true;
         return $obj;
     }
 
+
+    /**
+     * Update fields from passed-in user data in jsonapi format
+     *
+     * @param array $data A JSON-API-formatted array of data defining attributes and relationships to set
+     * @return void
+     */
+    public function updateFromUserInput(array $data) {
+        if (!array_key_exists('type', $data) || $data['type'] != $this->resourceType) throw new \InvalidArgumentException("You've passed data for a resource that is not the same type as the one you're trying to update: `$data[type]` <> `$this->resourceType`");
+
+        $attrs = [];
+        $rels = null;
+        if (array_key_exists('attributes', $data)) $attrs = $data['attributes'];
+        if (array_key_exists('relationships', $data)) $rels = $data['relationships'];
+
+        foreach($attrs as $n => $v) {
+            $setAttribute = "set".ucfirst($n);
+            $this->$setAttribute($v);
+        }
+
+        if ($rels) {
+            foreach(array_keys($this->relationships) as $name) {
+                // If the update doesn't concern this relationship, move on
+                if (!array_key_exists($name, $rels)) continue;
+
+                $rel = $rels[$name];
+                if (!($rel instanceof RelationshipInterface)) {
+                    $rel['name'] = $name;
+                    $rel = $this->f->newJsonApiRelationship($rel);
+                }
+
+                $setRelationship = "set".ucfirst($name);
+                $this->$setRelationship($rel->getData());
+
+                unset($rels[$name]);
+            }
+
+            if (count($rels) > 0) throw new \InvalidArgumentException("You've passed in relationships that this resource doesn't have: ".implode(', ', $rels));
+        }
+    }
+
+
+
+    /**
+     * Initialize the attributes array, merging passed attributes with defaults
+     *
+     * @param array $initialAttrs An array of initial attribute values
+     * @return void
+     */
     protected function initializeAttributes(array $initialAttrs=[]) {
         // Merge attributes
         $attrs = $this->attributes;
@@ -101,6 +160,12 @@ abstract class BaseResource implements BaseResourceInterface {
         }
     }
 
+    /**
+     * Initialize the relationships array, merging passed relationships with defaults
+     *
+     * @param array $initialRels An array of initial relationships (should be in the form `'[relName]' => [relData|Relationship]`)
+     * @return void
+     */
     protected function initializeRelationships(array $initialRels=[]) {
         // Initialize required relationships as empty relationships
         $rels = [];
