@@ -4,7 +4,7 @@ namespace KS\JsonApi;
 trait Rel2MTrait {
     protected function add2MRel($name, BaseResourceInterface $resource) {
         if (!in_array($name, $this->initializedRelationships)) throw new UninitializedRelationshipException("You have not yet initialized the to-many relationship `$name`. You must initialize this relationship before using it.");
-        if (!$this->has2MRel($resource)) $this->relationships[$name]->getData()[] = $resource;
+        if (!$this->has2MRel($name, $resource)) $this->relationships[$name]->getData()[] = $resource;
         return $this;
     }
     protected function has2MRel($name, BaseResourceInterface $resource=null) {

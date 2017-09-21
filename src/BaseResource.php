@@ -154,8 +154,10 @@ abstract class BaseResource implements BaseResourceInterface {
             if (!is_string($k)) throw new \RuntimeException("You've passed an attribute with a non-string index (`$k` => `$v`). Attributes must be string-indexed, including default attributes. Example: `protected \$attributes = [ 'name' => null, 'dob' => null ]");
             $setAttribute = "set".ucfirst($k);
 
-            // Don't have to check for valid attributes here, because this will throw an error if there's
-            // no valid setter found.
+            // Validate
+            if (!method_exists($this, $setAttribute)) throw new UnknownAttributeException("You've passed an attribute (`$k`) that is not valid for this resource.");
+
+            // Set
             $this->$setAttribute($v);
         }
     }
@@ -196,8 +198,10 @@ abstract class BaseResource implements BaseResourceInterface {
                 $r = $this->f->newJsonApiRelationship($r);
             }
 
-            // Set relationship (don't have to check for validity because it will throw errors if the `set[Relationship]`
-            // method doesn't exist)
+            // Validate
+            if (!method_exists($this, $setRelationship)) throw new UnknownRelationshipException("You've passed a relationship (`$n`) that is not valid for this resource.");
+
+            // Set
             $this->relationships[$n] = $r;
             $this->$setRelationship($r->getData());
         }
