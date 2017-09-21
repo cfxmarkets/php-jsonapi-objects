@@ -5,5 +5,6 @@ interface BaseResourceInterface extends \JsonSerializable, \KS\ErrorHandlerInter
     function getResourceType();
     function getId();
     function setId($id);
+    function updateFromUserInput(array $data);
 }
 
