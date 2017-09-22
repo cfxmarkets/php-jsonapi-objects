@@ -103,7 +103,8 @@ abstract class BaseResource implements BaseResourceInterface {
      * @return void
      */
     public function updateFromUserInput(array $data) {
-        if (!array_key_exists('type', $data) || $data['type'] != $this->resourceType) throw new \InvalidArgumentException("You've passed data for a resource that is not the same type as the one you're trying to update: `$data[type]` <> `$this->resourceType`");
+        if (!array_key_exists('type', $data)) throw new \InvalidArgumentException("You must pass in a 'type' parameter, even when updating a known object.");
+        if ($data['type'] != $this->resourceType) throw new \InvalidArgumentException("You've passed data for a resource that is not the same type as the one you're trying to update: `$data[type]` <> `$this->resourceType`");
 
         $attrs = [];
         $rels = null;
@@ -112,6 +113,7 @@ abstract class BaseResource implements BaseResourceInterface {
 
         foreach($attrs as $n => $v) {
             $setAttribute = "set".ucfirst($n);
+            if (!method_exists($this, $setAttribute)) throw new UnknownAttributeException("You've passed an attribute (`$n`) that is not valid for this resource.");
             $this->$setAttribute($v);
         }
 
@@ -127,6 +129,7 @@ abstract class BaseResource implements BaseResourceInterface {
                 }
 
                 $setRelationship = "set".ucfirst($name);
+                if (!method_exists($this, $setRelationship)) throw new UnknownRelationshipException("You've passed a relationship (`$name`) that is not valid for this resource.");
                 $this->$setRelationship($rel->getData());
 
                 unset($rels[$name]);
