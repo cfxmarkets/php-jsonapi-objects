@@ -219,6 +219,16 @@ abstract class BaseResource implements BaseResourceInterface {
     public function getResourceType() { return $this->resourceType; }
     public function getId() { return $this->id; }
 
+    public function getCollectionLinkPath() {
+        return "/{$this->resourceType}";
+    }
+
+    public function getSelfLinkPath() {
+        $path = $this->getCollectionLinkPath();
+        if ($this->getId()) $path .= "/{$this->getId()}";
+        return $path;
+    }
+
     public function jsonSerialize($fullResource=true) {
         $data = [];
         $data['type'] = $this->resourceType;

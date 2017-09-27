@@ -117,10 +117,20 @@ class Document implements DocumentInterface {
 
 
 
+    // TODO: Make it so that jsonSerialize doesn't alter the object (currently it adds a self link to the object if none exists)
     public function jsonSerialize() {
         $data = [];
         if ($this->errors) $data['errors'] = $this->errors;
-        else $data['data'] = $this->data;
+        else {
+            $data['data'] = $this->data;
+            if ((!$this->links || !$this->getLink('self')) && $this->data) {
+                if ($this->data instanceof ResourceInterface) {
+                    $this->addLink($this->f->newJsonApiLink([ 'name' => 'self', 'href' => $this->data->getSelfLinkPath() ]));
+                } elseif ($this->data instanceof ResourceCollectionInterface && count($this->data)) {
+                    $this->addLink($this->f->newJsonApiLink([ 'name' => 'self', 'href' => $this->data[0]->getCollectionLinkPath() ]));
+                }
+            }
+        }
 
         if ($this->links) $data['links'] = $this->links;
         if ($this->meta) $data['meta'] = $this->meta;
