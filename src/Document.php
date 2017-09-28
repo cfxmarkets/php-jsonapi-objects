@@ -4,6 +4,7 @@ namespace KS\JsonApi;
 class Document implements DocumentInterface {
     protected $version = "1.0";
 
+    protected $baseUrl;
     protected $f;
     protected $data;
     protected $errors;
@@ -79,6 +80,7 @@ class Document implements DocumentInterface {
     }
 
 
+    public function getBaseUrl() { return $this->baseUrl; }
     public function getData() { return $this->data; }
     public function getErrors() { return $this->errors ?: $this->f->newJsonApiErrorsCollection(); }
     public function getLinks() { return $this->links ?: $this->f->newJsonApiLinksCollection(); }
@@ -90,6 +92,10 @@ class Document implements DocumentInterface {
 
 
 
+
+    public function setBaseUrl($url) {
+        $this->baseUrl = $url;
+    }
 
     public function setData($data) {
         if (!($data instanceof BaseResourceInterface) && !($data instanceof ResourceCollectionInterface)) throw new \InvalidArgumentException("Data must be either a BaseResource or a ResourceCollection");
@@ -124,10 +130,10 @@ class Document implements DocumentInterface {
         else {
             $data['data'] = $this->data;
             if ((!$this->links || !$this->getLink('self')) && $this->data) {
-                if ($this->data instanceof ResourceInterface) {
-                    $this->addLink($this->f->newJsonApiLink([ 'name' => 'self', 'href' => $this->data->getSelfLinkPath() ]));
+                if ($this->data instanceof BaseResourceInterface) {
+                    $this->addLink($this->f->newJsonApiLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data->getSelfLinkPath() ]));
                 } elseif ($this->data instanceof ResourceCollectionInterface && count($this->data)) {
-                    $this->addLink($this->f->newJsonApiLink([ 'name' => 'self', 'href' => $this->data[0]->getCollectionLinkPath() ]));
+                    $this->addLink($this->f->newJsonApiLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data[0]->getCollectionLinkPath() ]));
                 }
             }
         }
