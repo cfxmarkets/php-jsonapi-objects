@@ -182,6 +182,9 @@ abstract class BaseResource implements BaseResourceInterface {
             $rels[$k] = $r;
         }
 
+        // Keep public relationships
+        $publicRels = $rels;
+
         // Overwrite default required relationships with passed-in relationships
         foreach($initialRels as $n => $r) {
             // Mark passed in relationships as "initialized"
@@ -205,7 +208,7 @@ abstract class BaseResource implements BaseResourceInterface {
             if (!method_exists($this, $setRelationship)) throw new UnknownRelationshipException("You've passed a relationship (`$n`) that is not valid for this resource.");
 
             // Set
-            $this->relationships[$n] = $r;
+            if (array_key_exists($n, $publicRels)) $this->relationships[$n] = $r;
             $this->$setRelationship($r->getData());
         }
     }
