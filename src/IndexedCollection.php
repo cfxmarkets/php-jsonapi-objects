@@ -8,19 +8,27 @@ abstract class IndexedCollection extends Collection implements IndexedCollection
         // If value is not null and has a name...
         if ($value !== null && $value->getMemberName()) {
             // If we've used a string offset that doesn't match the given name, throw exception
-            if (!is_int($offset) && $offset != $value->getMemberName()) throw new \InvalidArgumentException("You've attempted to add a named member, `{$value->getMemberName()}`, to this collection at an index that doesn't match its name (`{$offset}`). Indices must match the names of the objects they contain. (Remember, you can always add a named member using an empty pair of brackets, `[]`.)");
-
-            // Set offset to member name
-            $offset = $value->getMemberName();
+            if ($offset !== null && $offset != $value->getMemberName()) throw new \InvalidArgumentException("You've attempted to add a named member, `{$value->getMemberName()}`, to this collection at an index that doesn't match its name (`{$offset}`). Indices must match the names of the objects they contain. (Remember, you can always add a named member using an empty pair of brackets, `[]`.)");
 
             // Now, check for duplicates in the collection
             foreach($this->elements as $k => $e) {
                 if ($e && $k != $offset && $e->getMemberName() == $value->getMemberName()) throw new CollectionConflictingMemberException("There is already a member in this collection at index `$k` with the same name as the one you're trying to add (`".$value->getMemberName()."`). You cannot add members with duplicate names to an indexed collection.");
             }
+
+            // Set offset to member name
+            $offset = $value->getMemberName();
+
+        // If there's no passed name, make sure the offset has a valid name
+        } elseif ($offset === null || $offset === '') {
+            $max = 0;
+            foreach($this->iteratorKeys as $k) {
+                if (is_int($k) && $k > $max) $max = $k;
+            }
+            $offset = $max;
         }
 
-        // If it's not null but DOESN'T have a name, set its name to the offset
-        if ($value && !$value->getMemberName()) $value->setMemberName($offset);
+        // If it's not null but DOESN'T have a name, AND we have a string offset, set its name to the offset
+        if ($value && !$value->getMemberName() && is_string($offset)) $value->setMemberName($offset);
 
         // Now use the parent method to do the setting
         parent::offsetSet($offset, $value);

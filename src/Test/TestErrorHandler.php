@@ -1,5 +1,5 @@
 <?php
-namespace Test;
+namespace KS\JsonApi\Test;
 
 class TestErrorHandler {
     use \KS\ErrorHandlerTrait;

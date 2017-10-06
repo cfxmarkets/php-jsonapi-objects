@@ -24,11 +24,6 @@
             "KS\\JsonApi\\" : "src/"
         }
     },
-    "autoload-dev": {
-        "psr-4" : {
-            "Test\\": "tests/classes"
-        }
-    },
     "repositories": [
         {
             "type": "git",

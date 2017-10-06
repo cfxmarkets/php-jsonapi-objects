@@ -1,5 +1,5 @@
 <?php
-namespace Test;
+namespace KS\JsonApi\Test;
 
 class TestData {
     public static function get($what=null) {

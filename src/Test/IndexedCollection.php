@@ -1,5 +1,5 @@
 <?php
-namespace Test;
+namespace KS\JsonApi\Test;
 
 class IndexedCollection extends \KS\JsonApi\IndexedCollection {
     public function summarize() {

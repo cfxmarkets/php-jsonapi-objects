@@ -1,11 +1,7 @@
 <?php
-namespace Test;
+namespace KS\JsonApi\Test;
 
-class Factory implements \KS\JsonApi\FactoryInterface {
-    use \KS\JsonApi\FactoryTrait {
-        newJsonApiResource as newGenericJsonApiResource;
-    }
-
+class Factory extends \KS\JsonApi\Factory {
     /**
      * Stub this out so that we return a GenericResource for any requested type
      */

@@ -1,5 +1,5 @@
 <?php
-namespace Test;
+namespace KS\JsonApi\Test;
 
 class User extends \KS\JsonApi\BaseResource {
     protected $resourceType = 'test-users';

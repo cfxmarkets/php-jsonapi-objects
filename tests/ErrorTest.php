@@ -83,6 +83,6 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
 
 
 
-    protected function f() { return new \Test\Factory(); }
+    protected function f() { return new \KS\JsonApi\Test\Factory(); }
 }
 

@@ -14,8 +14,8 @@ use \KS\JsonApi\MetaInterface;
 use \KS\JsonApi\Link;
 use \KS\JsonApi\LinkInterface;
 use \KS\JsonApi\LinksCollectionInterface;
-use \Test\TestData;
-use \Test\Factory;
+use \KS\JsonApi\Test\TestData;
+use \KS\JsonApi\Test\Factory;
 
 class DocumentTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateBlankDoc() {

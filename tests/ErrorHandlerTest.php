@@ -4,8 +4,8 @@ use \KS\JsonApi\Error;
 
 class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
     public function testErrors() {
-        $f = new \Test\Factory();
-        $t = new \Test\TestErrorHandler();
+        $f = new \KS\JsonApi\Test\Factory();
+        $t = new \KS\JsonApi\Test\TestErrorHandler();
 
         $this->assertFalse($t->hasErrors());
         $this->assertFalse($t->hasErrors('testField'));
@@ -70,7 +70,7 @@ class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testThrowsExceptionOnNonJsonApiError() {
-        $t = new \Test\TestErrorHandler();
+        $t = new \KS\JsonApi\Test\TestErrorHandler();
         try {
             $t->produceError('testField', null, 'Some message');
             $this->fail("Should have thrown an exception");

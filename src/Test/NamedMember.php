@@ -1,5 +1,5 @@
 <?php
-namespace Test;
+namespace KS\JsonApi\Test;
 
 class NamedMember implements \KS\JsonApi\NamedMemberInterface {
     protected $memberName;

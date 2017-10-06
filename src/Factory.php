@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-trait FactoryTrait {
+class Factory implements FactoryInterface {
     function newJsonApiDocument($data=null) { return new Document($this, $data); }
     function newJsonApiResource($data=null, $type=null, $validAttrs=null, $validRels=null) {
         if ($type !== null) throw new UnknownResourceTypeException("Type `$type` is unknown. You can handle this type by overriding the `newJsonApiResource` method in your factory and adding a handler for the type there.");

@@ -1,7 +1,7 @@
 <?php
 
 use \KS\JsonApi\GenericResource;
-use \Test\Factory;
+use \KS\JsonApi\Test\Factory;
 
 class ResourceTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateEmptyResource() {
@@ -41,7 +41,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $f = new Factory();
 
-        $t = new \Test\User($f, $data);
+        $t = new \KS\JsonApi\Test\User($f, $data);
 
         $this->assertTrue($t instanceof \KS\JsonApi\BaseResourceInterface);
         $this->assertTrue($t->getFriendsRelationship() instanceof \KS\JsonApi\RelationshipInterface);
@@ -83,7 +83,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $f = new Factory();
 
-        $t = new \Test\User($f, $data);
+        $t = new \KS\JsonApi\Test\User($f, $data);
 
         $this->assertEquals('Jim Chavo', $t->getName(), "Name should be Jim Chavo");
         $this->assertEquals('12345', $t->getDob(), "DOB should be 12345");
@@ -146,7 +146,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $f = new Factory();
 
         try {
-            $t = new \Test\User($f, $data);
+            $t = new \KS\JsonApi\Test\User($f, $data);
             $this->fail("Should have thrown an exception");
         } catch (\Error $e) {
             $this->assertContains("undefined method", $e->getMessage());
@@ -187,7 +187,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $f = new Factory();
 
         try {
-            $t = new \Test\User($f, $data);
+            $t = new \KS\JsonApi\Test\User($f, $data);
             $this->fail("Should have thrown an exception");
         } catch (\Error $e) {
             $this->assertContains("undefined method", $e->getMessage());
@@ -226,7 +226,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $f = new Factory();
 
-        $t = new \Test\User($f, $data);
+        $t = new \KS\JsonApi\Test\User($f, $data);
 
         $data = [
             'type' => $data['type'],

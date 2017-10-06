@@ -1,6 +1,6 @@
 <?php
 
-use \Test\IndexedCollection;
+use \KS\JsonApi\Test\IndexedCollection;
 
 class IndexedCollectionTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateEmptyCollection() {
@@ -20,13 +20,26 @@ class IndexedCollectionTest extends \PHPUnit\Framework\TestCase {
 
     public function testAcceptsNamedMember() {
         $t = new IndexedCollection();
-        $t['test'] = new \Test\NamedMember();
+        $t['test'] = new \KS\JsonApi\Test\NamedMember();
         $this->assertTrue($t['test'] instanceof \KS\JsonApi\NamedMemberInterface, "Should hold an instance of NamedMemberInterface");
+    }
+
+    public function testSetsMemberNameToStringOffsetName() {
+        $t = new IndexedCollection();
+        $m = new \KS\JsonApi\Test\NamedMember();
+        $this->assertNull($m->getMemberName(), 'Member name should default to null.');
+        $t['test'] = $m;
+        $this->assertEquals('test', $m->getMemberName(), "Member name should have changed to 'test'.");
+
+        $m = new \KS\JsonApi\Test\NamedMember();
+        $this->assertNull($m->getMemberName(), 'Member name should default to null.');
+        $t[] = $m;
+        $this->assertNull($m->getMemberName(), "Member name should still be null.");
     }
 
     public function testThrowsErrorOnSerializeWithUnnamedMembers() {
         $t = new IndexedCollection();
-        $t['test'] = new \Test\NamedMember();
+        $t[] = new \KS\JsonApi\Test\NamedMember();
         try {
             json_encode($t);
             $this->fail("Should have thrown an error");
@@ -38,22 +51,44 @@ class IndexedCollectionTest extends \PHPUnit\Framework\TestCase {
 
     public function testThrowsErrorOnAddMembersWithDuplicateNames() {
         $t = new IndexedCollection();
-        $t['test'] = new \Test\NamedMember();
+        $t['test'] = new \KS\JsonApi\Test\NamedMember();
         $t['test']->setMemberName('test');
 
         try {
-            $t['test2'] = $t['test'];
+            $t[] = $t['test'];
             $this->fail("Should have thrown an exception");
         } catch (\KS\JsonApi\CollectionConflictingMemberException $e) {
             $this->assertTrue(true, "This is the expected behavior");
         }
     }
 
+    public function testThrowsErrorOnAddMemberWithMismatchingName() {
+        $t = new IndexedCollection();
+        try {
+            $m = new \KS\JsonApi\Test\NamedMember();
+            $m->setMemberName('test');
+            $t['test2'] = $m;
+            $this->fail("Should have thrown an exception");
+        } catch (\InvalidArgumentException $e) {
+            $this->assertContains("index that doesn't match its name", $e->getMessage(), "Should indicate that the index doesn't match the given name");
+        }
+
+        /*
+         * Not implementable
+        $this->assertTrue(array_key_exists('test', $t), "`test` key should exist.");
+        $this->assertFalse(array_key_exists('test2', $t), "`test2` key shouldn't exist yet.");
+        $t[] = $m;
+        $t['test']->setMemberName('test2');
+        $this->assertTrue(array_key_exists('test2', $t), "`test2` key should now exist.");
+        $this->assertFalse(array_key_exists('test', $t), "`test` key should no longer exist.");
+         */
+    }
+
     public function testThrowsErrorOnSerializeMembersWithDuplicateNames() {
         $t = new IndexedCollection();
-        $t['test'] = new \Test\NamedMember();
+        $t['test'] = new \KS\JsonApi\Test\NamedMember();
         $t['test']->setMemberName('test');
-        $t['test2'] = new \Test\NamedMember();
+        $t['test2'] = new \KS\JsonApi\Test\NamedMember();
         $t['test2']->setMemberName('test');
 
         try {
@@ -67,10 +102,10 @@ class IndexedCollectionTest extends \PHPUnit\Framework\TestCase {
 
     public function testSuccessfullyHandlesValidCollections() {
         $t = new IndexedCollection();
-        $t['test'] = new \Test\NamedMember();
+        $t['test'] = new \KS\JsonApi\Test\NamedMember();
         $t['test']->setMemberName('test');
         $t['test']->setData('testData');
-        $t['test2'] = new \Test\NamedMember();
+        $t['test2'] = new \KS\JsonApi\Test\NamedMember();
         $t['test2']->setMemberName('test-two');
         $t['test2']->setData('testData2');
 
@@ -79,10 +114,10 @@ class IndexedCollectionTest extends \PHPUnit\Framework\TestCase {
 
     public function testActsLikeAnArray() {
         $t = new IndexedCollection();
-        $t['test'] = new \Test\NamedMember();
+        $t['test'] = new \KS\JsonApi\Test\NamedMember();
         $t['test']->setMemberName('test');
         $t['test']->setData('testData');
-        $t['test2'] = new \Test\NamedMember();
+        $t['test2'] = new \KS\JsonApi\Test\NamedMember();
         $t['test2']->setMemberName('test-two');
         $t['test2']->setData('testData2');
 
