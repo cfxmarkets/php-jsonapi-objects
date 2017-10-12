@@ -62,6 +62,15 @@ class LinkTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals(1, $l->getMeta()['test1']);
         $this->assertNull($l->getName());
         $this->assertNull($l->getHref());
+
+        try {
+            new Link(new \KS\JsonApi\Test\Factory(), [ 'name' => 'test', 'href' => '/test/me', 'invalid' => 'extra!!!' ]);
+            $this->fail("Should have thrown an exception");
+        } catch(\KS\JsonApi\MalformedDataException $e) {
+            $this->assertContains("`invalid`", $e->getMessage());
+            $this->assertEquals("Link (`test`)", $e->getOffender());
+            $this->assertEquals(['invalid'=>'extra!!!'], $e->getOffendingData());
+        }
     }
 
     public function testEmptyLinkSerializesToNull() {

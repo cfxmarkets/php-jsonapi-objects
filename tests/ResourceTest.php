@@ -131,6 +131,17 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertNull($t->getBoss(), "Boss should be null");
     }
 
+    public function testThrowsExceptionOnBadData() {
+        try {
+            new \KS\JsonApi\Test\User(new \KS\JsonApi\Test\Factory(), [ 'id' => '12345', 'type' => 'test-users', 'invalid' => 'extra!!!' ]);
+            $this->fail("Should have thrown an exception");
+        } catch(\KS\JsonApi\MalformedDataException $e) {
+            $this->assertContains("`invalid`", $e->getMessage());
+            $this->assertEquals("Resource (`test-users`)", $e->getOffender());
+            $this->assertEquals(['invalid'=>'extra!!!'], $e->getOffendingData());
+        }
+    }
+
     /*
      * Can't use these in php5.4
     public function testThrowsErrorOnInvalidAttribute() {

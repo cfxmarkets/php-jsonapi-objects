@@ -22,7 +22,10 @@
     "autoload" : {
         "psr-4" : {
             "KS\\JsonApi\\" : "src/"
-        }
+        },
+        "files" : [
+            "src/Exceptions.php"
+        ]
     },
     "repositories": [
         {
