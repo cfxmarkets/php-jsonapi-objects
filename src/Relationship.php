@@ -39,7 +39,7 @@ class Relationship implements RelationshipInterface {
             if (!($d instanceof BaseResourceInterface) && !($d instanceof ResourceCollectionInterface)) {
                 $type = gettype($d);
                 if ($type == 'object') $type = get_class($d);
-                throw \InvalidArgumentException("Value passed to `setData` must be either a Resource (`BaseResourceInterface`), a Resource Collection (`ResourceCollectionInterface`), or null. (`$type` given)");
+                throw new \InvalidArgumentException("Value passed to `setData` must be either a Resource (`BaseResourceInterface`), a Resource Collection (`ResourceCollectionInterface`), or null. (`$type` given)");
             }
         }
 
