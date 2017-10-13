@@ -11,6 +11,7 @@ class Document implements DocumentInterface {
     protected $links;
     protected $meta;
     protected $included;
+    protected $jsonapi;
 
     public function __construct(FactoryInterface $f, $data=null) {
         $this->f = $f;
@@ -20,6 +21,7 @@ class Document implements DocumentInterface {
                     if (!($error instanceof Error)) $error = $this->f->newJsonApiError($error);
                     $this->addError($error);
                 }
+                unset($data['errors']);
             }
 
             if (array_key_exists('data', $data)) {
@@ -38,6 +40,7 @@ class Document implements DocumentInterface {
                 } else {
                     throw new \InvalidArgumentException("Malformed `data` object in initial data array.");
                 }
+                unset($data['data']);
             }
 
             if (array_key_exists('links', $data)) {
@@ -64,19 +67,36 @@ class Document implements DocumentInterface {
                 } else {
                     throw new \InvalidArgumentException("Links passed must be either an indexed collection of link objects or an array of link objects or data");
                 }
+                unset($data['links']);
             }
 
             if (array_key_exists('meta', $data)) {
                 if ($data['meta'] instanceof Meta) $this->meta = $data['meta'];
                 else $this->meta = $this->f->newJsonApiMeta($data['meta']);
+                unset($data['meta']);
             }
 
             if (array_key_exists('included', $data)) {
                 if (!is_array($data['included'])) throw new \InvalidArgumentException("If you pass an array of included resources, it must be an array, not an object or string or null or anything else.");
                 $this->included = $this->f->newJsonApiResourceCollection();
                 foreach($data['included'] as $r) $this->included[] = $this->f->newJsonApiResource($r, $r['type']);
+                unset($data['included']);
+            }
+
+            if (array_key_exists('jsonapi', $data)) {
+                $this->jsonapi = $data['jsonapi'];
+                unset($data['jsonapi']);
+            }
+
+            if (count($data) > 0) {
+                $e = new MalformedDataException("You have unrecognized data in your JsonApi document. Offending keys are: `".implode('`, `', array_keys($data))."`.");
+                $e->setOffender("Document");
+                $e->setOffendingData($data);
+                throw $e;
             }
         }
+
+        if (!$this->jsonapi) $this->jsonapi = ['version' => $this->version];
     }
 
 
@@ -141,7 +161,7 @@ class Document implements DocumentInterface {
         if ($this->links) $data['links'] = $this->links;
         if ($this->meta) $data['meta'] = $this->meta;
 
-        $data['jsonapi'] = [ 'version' => $this->version, ];
+        $data['jsonapi'] = $this->jsonapi;
 
         return $data;
     }

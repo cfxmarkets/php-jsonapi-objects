@@ -46,12 +46,15 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testErrorShouldValidateLinks() {
+        $this->markTestIncomplete();
     }
 
     public function testErrorShouldValidateSource() {
+        $this->markTestIncomplete();
     }
 
     public function testErrorShouldValidateMeta() {
+        $this->markTestIncomplete();
     }
 
     public function testErrorRequiredValues() {
@@ -67,6 +70,17 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
             $this->fail("Should have thrown an exception");
         } catch (InvalidArgumentException $e) {
             $this->assertContains('`status`', $e->getMessage(), "Error should indicate that status is a required field.");
+        }
+    }
+
+    public function testErrorShouldThrowExceptionOnMalformedData() {
+        try {
+            new Error($this->f(), ['status' => 400, 'title' => 'some title', 'detail' => 'some detail', 'extra' => 'extra!!!']);
+            $this->fail("Should have thrown an exception");
+        } catch(\KS\JsonApi\MalformedDataException $e) {
+            $this->assertContains("`extra`", $e->getMessage());
+            $this->assertEquals("Error (`some title`)", $e->getOffender());
+            $this->assertEquals(['extra'=>'extra!!!'], $e->getOffendingData());
         }
     }
 

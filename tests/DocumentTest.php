@@ -83,5 +83,17 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
 
         $this->assertEquals(json_encode($struct), json_encode($doc));
     }
+
+
+    public function testDocumentRejectsMalformedData() {
+        try {
+            new \KS\JsonApi\Document(new Factory(), ['something' => 'invalid']);
+            $this->fail("Should have thrown an exception");
+        } catch (\KS\JsonApi\MalformedDataException $e) {
+            $this->assertContains("`something`", $e->getMessage());
+            $this->assertEquals("Document", $e->getOffender());
+            $this->assertEquals(['something'=>'invalid'], $e->getOffendingData());
+        }
+    }
 }
 

@@ -66,13 +66,30 @@ abstract class BaseResource implements BaseResourceInterface {
         $attrs = [];
         $rels = [];
         if ($data) {
-            if (array_key_exists('id', $data)) $this->id = $data['id'];
+            if (array_key_exists('id', $data)) {
+                $this->id = $data['id'];
+                unset($data['id']);
+            }
             if (array_key_exists('type', $data)) {
                 if ($this->resourceType && $data['type'] != $this->resourceType) throw new \InvalidArgumentException("This Resource has a fixed type of `$this->resourceType` that cannot be altered. (You passed a type of `$data[type]`.)");
                 $this->resourceType = $data['type'];
+                unset($data['type']);
             }
-            if (array_key_exists('attributes', $data)) $attrs = $data['attributes'];
-            if (array_key_exists('relationships', $data)) $rels = $data['relationships'];
+            if (array_key_exists('attributes', $data)) {
+                $attrs = $data['attributes'];
+                unset($data['attributes']);
+            }
+            if (array_key_exists('relationships', $data)) {
+                $rels = $data['relationships'];
+                unset($data['relationships']);
+            }
+
+            if (count($data) > 0) {
+                $e = new MalformedDataException("You have unrecognized data in your JsonApi Resource. Offending keys are: `".implode('`, `', array_keys($data))."`.");
+                $e->setOffender("Resource (`$this->resourceType`)");
+                $e->setOffendingData($data);
+                throw $e;
+            }
         }
 
         $this->initializeAttributes($attrs);

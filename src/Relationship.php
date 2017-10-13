@@ -14,6 +14,7 @@ class Relationship implements RelationshipInterface {
 
         if (!array_key_exists('name', $data)) throw new \InvalidArgumentException("To construct a Relationship, you must pass a `name` key containing the name of the resource.");
         $this->name = $data['name'];
+        unset($data['name']);
 
         if (!array_key_exists('data', $data)) $data['data'] = null;
 
@@ -23,9 +24,23 @@ class Relationship implements RelationshipInterface {
             $rc = $this->data = $this->f->newJsonApiResourceCollection();
             foreach($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, array_key_exists('type', $r) ? $r['type'] : null);
         }
+        unset($data['data']);
 
-        if (array_key_exists('links', $data)) $this->links = $data['links'];
-        if (array_key_exists('meta', $data)) $this->meta = $data['meta'];
+        if (array_key_exists('links', $data)) {
+            $this->links = $data['links'];
+            unset($data['links']);
+        }
+        if (array_key_exists('meta', $data)) {
+            $this->meta = $data['meta'];
+            unset($data['meta']);
+        }
+
+        if (count($data) > 0) {
+            $e = new MalformedDataException("You have unrecognized data in your JsonApi Relationship. Offending keys are: `".implode('`, `', array_keys($data))."`.");
+            $e->setOffender("Relationship (`$this->name`)");
+            $e->setOffendingData($data);
+            throw $e;
+        }
     }
 
     public function getName() { return $this->name; }

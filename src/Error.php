@@ -20,8 +20,13 @@ class Error implements ErrorInterface {
         if (!array_key_exists('status', $props)) throw new \InvalidArgumentException("You must include a `status` key in your initial properties array");
         if (!array_key_exists('title', $props)) throw new \InvalidArgumentException("You must include a `title` key in your initial properties array");
 
+        $invalidData = [];
+
         foreach ($props as $k => $v) {
-            if (!in_array($k, $this->fields)) throw new \InvalidArgumentException("Unrecognized property `$k`");
+            if (!in_array($k, $this->fields)) {
+                $invalidData[$k] = $v;
+                continue;
+            }
 
             if ($k == 'links') {
                 if (!($v instanceof Collection)) throw new \InvalidArgumentException("Value passed with key `links` must be a JsonApi Collection containing an `about` key with a link to more information about this error.");
@@ -35,6 +40,13 @@ class Error implements ErrorInterface {
             // TODO: Finish field validations
 
             $this->$k = $v;
+        }
+
+        if (count($invalidData) > 0) {
+            $e = new MalformedDataException("Unrecognized properties: `".implode('`, `', array_keys($invalidData))."`");
+            $e->setOffender("Error (`$this->title`)");
+            $e->setOffendingData($invalidData);
+            throw $e;
         }
     }
 
