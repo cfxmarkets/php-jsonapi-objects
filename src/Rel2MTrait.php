@@ -2,16 +2,17 @@
 namespace KS\JsonApi;
 
 trait Rel2MTrait {
-    protected function add2MRel($name, BaseResourceInterface $resource, $private=false) {
-        if (!in_array($name, $this->initializedRelationships)) throw new UninitializedRelationshipException("You have not yet initialized the to-many relationship `$name`. You must initialize this relationship before using it.");
-        if (!$this->has2MRel($name, $resource, $private)) {
-            if ($private) $this->privateRelationships[$name]->getData()[] = $resource;
-            else $this->relationships[$name]->getData()[] = $resource;
-        }
+    protected function get2MRel($name) {
+        if (!in_array($name, $this->initializedRelationships)) $this->initialize2MRel($name);
+        return $this->relationships[$name]->getData();
+    }
+    protected function add2MRel($name, BaseResourceInterface $resource) {
+        if (!in_array($name, $this->initializedRelationships)) $this->initialize2MRel($name);
+        if (!$this->has2MRel($name, $resource)) $this->relationships[$name]->getData()[] = $resource;
         return $this;
     }
-    protected function has2MRel($name, BaseResourceInterface $resource=null, $private=false) {
-        if (!in_array($name, $this->initializedRelationships)) throw new UninitializedRelationshipException("You have not yet initialized the to-many relationship `$name`. You must initialize this relationship before using it.");
+    protected function has2MRel($name, BaseResourceInterface $resource=null) {
+        if (!in_array($name, $this->initializedRelationships)) $this->initialize2MRel($name);
         try {
             $index = $this->indexOf2MRel($name, $resource);
             return $index !== false;
@@ -19,24 +20,34 @@ trait Rel2MTrait {
             return false;
         }
     }
-    protected function indexOf2MRel($name, BaseResourceInterface $resource=null, $private=false) {
-        $check = $private ? $this->privateRelationships[$name] : $this->relationships[$name];
-        if ($resource && $check->getData()) {
-            foreach($check->getData() as $k => $test) {
+    protected function indexOf2MRel($name, BaseResourceInterface $resource=null) {
+        if ($resource && $this->relationships[$name]->getData()) {
+            foreach($this->relationships[$name]->getData() as $k => $test) {
                 if ($test->getId() == $resource->getId() && $test->getResourceType() == $resource->getResourceType()) return $k;
             }
         }
         throw new CollectionUndefinedIndexException("Resource is not in collection");
     }
-    protected function remove2MRel($name, BaseResourceInterface $resource, $private=false) {
+    protected function remove2MRel($name, BaseResourceInterface $resource) {
         try {
             $index = $this->indexOf2MRel($name, $resource);
-            if ($private) unset($this->privateRelationships[$name]->getData()[$index]);
-            else unset($this->relationships[$name]->getData()[$index]);
+            unset($this->relationships[$name]->getData()[$index]);
         } catch (CollectionUndefinedIndexException $e) {
             // Nothing to do if not in collection
         }
         return;
+    }
+
+    protected function initialize2MRel($name) {
+        $client = explode('-', $this->resourceType);
+        for($i = 1; $i < count($client); $i++) $client[$i] = ucfirst($client[$i]);
+        $client = implode('', $client);
+        $collection = $this->datasource->getRelated($name, $this->getId());
+
+        $this->trackChanges = false;
+        $this->_setRelationship($name, $collection);
+        $this->initializedRelationships[$name] = true;
+        $this->trackChanges = true;
     }
 }
 

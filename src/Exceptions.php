@@ -41,7 +41,15 @@ class MalformedDataException extends JsonApiException {
 class UninitializedRelationshipException extends JsonApiException { }
 class UnknownAttributeException extends JsonApiException { }
 class UnknownRelationshipException extends JsonApiException { }
-class UnknownResourceTypeException extends JsonApiException { }
+class UnknownResourceTypeException extends JsonApiException {
+    protected $unknownType;
+
+    public function setUnknownType($type) {
+        $this->unknownType = $type;
+        return this;
+    }
+    public function getUnknownType() { return $this->unknownType; }
+}
 
 class UnserializableObjectStateException extends JsonApiException { }
 
