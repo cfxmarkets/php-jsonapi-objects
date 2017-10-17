@@ -2,7 +2,7 @@
 namespace KS\JsonApi;
 
 class Error implements ErrorInterface {
-    protected $f;
+    protected $context;
     protected $fields = ['id','status','code','title','detail','source','links','meta'];
 
     protected $id;
@@ -14,8 +14,8 @@ class Error implements ErrorInterface {
     protected $source;
     protected $meta;
 
-    public function __construct(FactoryInterface $f, $props) {
-        $this->f = $f;
+    public function __construct(ContextInterface $context, $props) {
+        $this->context = $context;
 
         if (!array_key_exists('status', $props)) throw new \InvalidArgumentException("You must include a `status` key in your initial properties array");
         if (!array_key_exists('title', $props)) throw new \InvalidArgumentException("You must include a `title` key in your initial properties array");

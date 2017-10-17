@@ -1,11 +1,11 @@
 <?php
 namespace KS\JsonApi;
 
-abstract class BaseResource implements BaseResourceInterface {
+abstract class AbstractResource implements ResourceInterface {
     use \KS\ErrorHandlerTrait;
 
-    /** This resource's instance of Factory **/
-    protected $datasource;
+    /** This resource's instance of the Context **/
+    protected $context;
 
     /** Fields that match with JSON-API Resource fields **/
     protected $id;
@@ -23,7 +23,7 @@ abstract class BaseResource implements BaseResourceInterface {
      * Generally, `$initialized` should be false when this is a new object or a resource identifier. If the resource
      * was inflated from persistence, $initialized should be true. Because resources may have complex relationships
      * wth other resources, the field `$relationshipsInitialized` may be used to track which to-many relationships
-     * have been initialized. The `BaseResource` class doesn't make any accommodations for the implementation of this
+     * have been initialized. The `AbstractResource` class doesn't make any accommodations for the implementation of this
      * logic, but understands that such functionality may be desireable.
      */
     private $initialized = false;
@@ -63,12 +63,12 @@ abstract class BaseResource implements BaseResourceInterface {
      *     public function removeAddress(AddressInterface $address);
      *     public function setBoss(PersonInterface $boss);
      *
-     * @param FactoryInterface $datasource A factory with which to instantiate child objects
+     * @param FactoryInterface $context A factory with which to instantiate child objects
      * @param array $data An optional array of user data with which to initialize the object
      * @return static
      */
-    public function __construct(FactoryInterface $datasource, $data=null) {
-        $this->datasource = $datasource;
+    public function __construct(ContextInterface $context, $data=null) {
+        $this->context = $context;
 
         // Set all attributes to null initially, saving default values
         $defaultAttrVals = [];
@@ -85,7 +85,7 @@ abstract class BaseResource implements BaseResourceInterface {
 
         // Set relationships
         $relationships = [];
-        foreach($this->relationships as $name) $relationships[$name] = $this->datasource->newJsonApiRelationship(['name' => $name]);
+        foreach($this->relationships as $name) $relationships[$name] = $this->context->newJsonApiRelationship(['name' => $name]);
         $this->relationships = $relationships;
 
         // Check to see if there's data waiting for us in our database
@@ -97,17 +97,12 @@ abstract class BaseResource implements BaseResourceInterface {
 
 
     /**
-     * Restore an object from data persisted to a secure datasource
+     * Restore an object from data persisted to a secure context
      *
-     * This is meant to be called from within the database itself, and won't do anything
-     * unless the database has active data to provide (which it should only provide during
-     * the lifetime of its own update call).
-     *
-     * Thus, this is not intended to be a programmer-usable call, albeit public in scope.
-     *
+     * This method is called from the constructor ONLY and is intended to allow the context 
      */
-    public function restoreFromData() {
-        $data = $this->datasource->getCurrentData();
+    protected function restoreFromData() {
+        $data = $this->context->getCurrentData();
         if ($data) {
             $this->trackChanges = false;
             $this->updateFromJsonApi($data);
@@ -152,7 +147,7 @@ abstract class BaseResource implements BaseResourceInterface {
             foreach($data['relationships'] as $name => $rel) {
                 if (!($rel instanceof RelationshipInterface)) {
                     $rel['name'] = $name;
-                    $rel = $this->datasource->newJsonApiRelationship($rel);
+                    $rel = $this->context->newJsonApiRelationship($rel);
                 }
 
                 // Validate that the relationship is settable
@@ -239,7 +234,7 @@ abstract class BaseResource implements BaseResourceInterface {
         if (!$fullResource) return $data;
 
         if (count($this->attributes) > 0) {
-            foreach($this->attributes as $name => $v) $data['attributes'] = $this->serializeAttribute($name);
+            foreach($this->attributes as $name => $v) $data['attributes'][$name] = $this->serializeAttribute($name);
         }
         if (count($this->relationships) > 0) {
             $data['relationships'] = [];
@@ -285,17 +280,22 @@ abstract class BaseResource implements BaseResourceInterface {
      */
     protected function _setRelationship($name, $val) {
         $changed = true;
-        if ($val instanceof BaseResourceInterface) {
+        if (!$val) {
+            if ($this->relationships[$name]->getData() === null) $changed = false;
+        } elseif ($val instanceof ResourceInterface) {
             $rel = $this->relationships[$name]->getData();
-            if ($rel && $this->$val->getId() == $rel->getId()) $changed = false;
+            if ($rel && $val->getId() == $rel->getId()) $changed = false;
         } elseif ($val instanceof ResourceCollectionInterface) {
             $newResources = $currentResources = [];
             foreach ($val as $k => $resource) $newResources[] = $resource->getId();
-            foreach ($this->relationships[$name]->getData() as $k => $resource) $currentResources[] = $resource->getId();
+            if ($this->relationships[$name]->getData()) {
+                foreach ($this->relationships[$name]->getData() as $k => $resource) $currentResources[] = $resource->getId();
+            }
             sort($newResources);
             sort($currentResources);
             if (implode('', $newResources) == implode('', $currentResources)) $changed = false;
         } else {
+            var_dump($val);
             throw new \RuntimeException("Unrecognized relationship type! Relationships should be either Resources or ResourceCollections.");
         }
 

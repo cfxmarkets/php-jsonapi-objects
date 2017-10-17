@@ -2,15 +2,15 @@
 namespace KS\JsonApi;
 
 class Relationship implements RelationshipInterface {
-    protected $f;
+    protected $context;
 
     protected $name;
     protected $links;
     protected $meta;
     protected $data;
 
-    public function __construct(FactoryInterface $f, $data) {
-        $this->f = $f;
+    public function __construct(ContextInterface $context, $data) {
+        $this->context = $context;
 
         if (!array_key_exists('name', $data)) throw new \InvalidArgumentException("To construct a Relationship, you must pass a `name` key containing the name of the resource.");
         $this->name = $data['name'];
@@ -19,10 +19,10 @@ class Relationship implements RelationshipInterface {
         if (!array_key_exists('data', $data)) $data['data'] = null;
 
         if ($data['data'] === null) $this->data = null;
-        elseif (array_key_exists('id', $data['data'])) $this->data = $this->f->newJsonApiResource($data['data'], array_key_exists('type', $data['data']) ? $data['data']['type'] : null);
+        elseif (array_key_exists('id', $data['data'])) $this->data = $this->context->newJsonApiResource($data['data'], array_key_exists('type', $data['data']) ? $data['data']['type'] : null);
         else {
-            $rc = $this->data = $this->f->newJsonApiResourceCollection();
-            foreach($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, array_key_exists('type', $r) ? $r['type'] : null);
+            $rc = $this->data = $this->context->newJsonApiResourceCollection();
+            foreach($data['data'] as $r) $rc[] = $this->context->newJsonApiResource($r, array_key_exists('type', $r) ? $r['type'] : null);
         }
         unset($data['data']);
 
@@ -51,10 +51,10 @@ class Relationship implements RelationshipInterface {
     public function setData($d=null) {
         // Typecheck
         if ($d !== null) {
-            if (!($d instanceof BaseResourceInterface) && !($d instanceof ResourceCollectionInterface)) {
+            if (!($d instanceof ResourceInterface) && !($d instanceof ResourceCollectionInterface)) {
                 $type = gettype($d);
                 if ($type == 'object') $type = get_class($d);
-                throw new \InvalidArgumentException("Value passed to `setData` must be either a Resource (`BaseResourceInterface`), a Resource Collection (`ResourceCollectionInterface`), or null. (`$type` given)");
+                throw new \InvalidArgumentException("Value passed to `setData` must be either a Resource (`ResourceInterface`), a Resource Collection (`ResourceCollectionInterface`), or null. (`$type` given)");
             }
         }
 

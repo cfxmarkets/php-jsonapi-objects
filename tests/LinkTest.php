@@ -3,7 +3,7 @@
 use \KS\JsonApi\Link;
 
 class LinkTest extends \PHPUnit\Framework\TestCase {
-    public function testThrowsErrorIfNoFactoryOnConstruct() {
+    public function testThrowsErrorIfNoContextOnConstruct() {
         try {
             $l = new Link();
             $this->fail("Should have thrown error");
@@ -13,12 +13,12 @@ class LinkTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testCanCreateNewEmptyLink() {
-        $l = new Link(new \KS\JsonApi\Test\Factory());
+        $l = new Link(new \KS\JsonApi\Test\Context());
         $this->assertTrue($l instanceof \KS\JsonApi\LinkInterface, "Should have returned an implementation of LinkInterface");
     }
 
     public function testInterface() {
-        $l = new Link(new \KS\JsonApi\Test\Factory());
+        $l = new Link(new \KS\JsonApi\Test\Context());
         $l->setName("test");
         $l->setHref("/relative/uri");
         $l->setMeta(new \KS\JsonApi\Meta([
@@ -38,7 +38,7 @@ class LinkTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testCorrectlyHandlesDataOnInstantiate() {
-        $l = new Link(new \KS\JsonApi\Test\Factory(), [
+        $l = new Link(new \KS\JsonApi\Test\Context(), [
             'name' => 'test',
             'href' => '/test/me',
             'meta' => new \KS\JsonApi\Meta(['test1' => 1]),
@@ -47,24 +47,24 @@ class LinkTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals('/test/me', $l->getHref());
         $this->assertEquals(1, $l->getMeta()['test1']);
 
-        $l = new Link(new \KS\JsonApi\Test\Factory(), [ 'name' => 'test' ]);
+        $l = new Link(new \KS\JsonApi\Test\Context(), [ 'name' => 'test' ]);
         $this->assertEquals('test', $l->getName());
         $this->assertNull($l->getHref());
         $this->assertNull($l->getMeta());
 
-        $l = new Link(new \KS\JsonApi\Test\Factory(), [ 'href' => '/test/me' ]);
+        $l = new Link(new \KS\JsonApi\Test\Context(), [ 'href' => '/test/me' ]);
         $this->assertEquals('/test/me', $l->getHref());
         $this->assertNull($l->getName());
         $this->assertNull($l->getMeta());
 
-        $l = new Link(new \KS\JsonApi\Test\Factory(), [ 'meta' => ['test1' => 1]]);
+        $l = new Link(new \KS\JsonApi\Test\Context(), [ 'meta' => ['test1' => 1]]);
         $this->assertTrue($l->getMeta() instanceof \KS\JsonApi\Meta);
         $this->assertEquals(1, $l->getMeta()['test1']);
         $this->assertNull($l->getName());
         $this->assertNull($l->getHref());
 
         try {
-            new Link(new \KS\JsonApi\Test\Factory(), [ 'name' => 'test', 'href' => '/test/me', 'invalid' => 'extra!!!' ]);
+            new Link(new \KS\JsonApi\Test\Context(), [ 'name' => 'test', 'href' => '/test/me', 'invalid' => 'extra!!!' ]);
             $this->fail("Should have thrown an exception");
         } catch(\KS\JsonApi\MalformedDataException $e) {
             $this->assertContains("`invalid`", $e->getMessage());
@@ -74,15 +74,15 @@ class LinkTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testEmptyLinkSerializesToNull() {
-        $l = new Link(new \KS\JsonApi\Test\Factory());
+        $l = new Link(new \KS\JsonApi\Test\Context());
         $this->assertNull($l->jsonSerialize());
     }
 
     public function testSerializesToObjectIfMetaPresentAndStringOtherwise() {
-        $l = new Link(new \KS\JsonApi\Test\Factory(), [ 'name' => 'test', 'href' => '/test/me' ]);
+        $l = new Link(new \KS\JsonApi\Test\Context(), [ 'name' => 'test', 'href' => '/test/me' ]);
         $this->assertEquals("/test/me", $l->jsonSerialize());
 
-        $l = new Link(new \KS\JsonApi\Test\Factory(), [ 'name' => 'test', 'href' => '/test/me', 'meta' => ['test1' => 1]]);
+        $l = new Link(new \KS\JsonApi\Test\Context(), [ 'name' => 'test', 'href' => '/test/me', 'meta' => ['test1' => 1]]);
         $this->assertEquals('{"href":"\\/test\\/me","meta":{"test1":1}}', json_encode($l));
     }
 }

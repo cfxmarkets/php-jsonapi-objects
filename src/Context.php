@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-class Factory implements FactoryInterface {
+class Context implements ContextInterface {
     function newJsonApiDocument($data=null) { return new Document($this, $data); }
     function newJsonApiResource($data=null, $type=null, $validAttrs=null, $validRels=null) {
         if ($type !== null) throw new UnknownResourceTypeException("Type `$type` is unknown. You can handle this type by overriding the `newJsonApiResource` method in your factory and adding a handler for the type there.");
@@ -14,5 +14,6 @@ class Factory implements FactoryInterface {
     function newJsonApiMeta($data=null) { return new Meta($data); }
     function newJsonApiLink($data=null) { return new Link($this, $data); }
     function newJsonApiLinksCollection($links=[]) { return new LinksCollection($links); }
+    function getCurrentData() { return null; }
 }
 

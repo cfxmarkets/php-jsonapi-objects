@@ -6,12 +6,12 @@ trait Rel2MTrait {
         if (!in_array($name, $this->initializedRelationships)) $this->initialize2MRel($name);
         return $this->relationships[$name]->getData();
     }
-    protected function add2MRel($name, BaseResourceInterface $resource) {
+    protected function add2MRel($name, ResourceInterface $resource) {
         if (!in_array($name, $this->initializedRelationships)) $this->initialize2MRel($name);
         if (!$this->has2MRel($name, $resource)) $this->relationships[$name]->getData()[] = $resource;
         return $this;
     }
-    protected function has2MRel($name, BaseResourceInterface $resource=null) {
+    protected function has2MRel($name, ResourceInterface $resource=null) {
         if (!in_array($name, $this->initializedRelationships)) $this->initialize2MRel($name);
         try {
             $index = $this->indexOf2MRel($name, $resource);
@@ -20,7 +20,7 @@ trait Rel2MTrait {
             return false;
         }
     }
-    protected function indexOf2MRel($name, BaseResourceInterface $resource=null) {
+    protected function indexOf2MRel($name, ResourceInterface $resource=null) {
         if ($resource && $this->relationships[$name]->getData()) {
             foreach($this->relationships[$name]->getData() as $k => $test) {
                 if ($test->getId() == $resource->getId() && $test->getResourceType() == $resource->getResourceType()) return $k;
@@ -28,7 +28,7 @@ trait Rel2MTrait {
         }
         throw new CollectionUndefinedIndexException("Resource is not in collection");
     }
-    protected function remove2MRel($name, BaseResourceInterface $resource) {
+    protected function remove2MRel($name, ResourceInterface $resource) {
         try {
             $index = $this->indexOf2MRel($name, $resource);
             unset($this->relationships[$name]->getData()[$index]);

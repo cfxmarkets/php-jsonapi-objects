@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi\Test;
 
-class Factory extends \KS\JsonApi\Factory {
+class Context extends \KS\JsonApi\Context {
     /**
      * Stub this out so that we return a GenericResource for any requested type
      */

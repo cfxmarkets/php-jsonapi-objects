@@ -1,7 +1,7 @@
 <?php
 namespace KS\JsonApi;
 
-interface GenericResourceInterface extends BaseResourceInterface {
+interface GenericResourceInterface extends ResourceInterface {
     function setAttribute($attr, $val);
     function getAttribute($k);
     function getAttributes();

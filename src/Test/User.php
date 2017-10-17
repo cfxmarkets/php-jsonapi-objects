@@ -1,25 +1,25 @@
 <?php
 namespace KS\JsonApi\Test;
 
-class User extends \KS\JsonApi\BaseResource {
+class User extends \KS\JsonApi\AbstractResource {
     protected $resourceType = 'test-users';
     protected $attributes = [ 'name' => null, 'dob' => null ];
     protected $relationships = [ 'friends', 'boss' ];
 
     public function setName($val) {
-        $this->attributes['name'] = $val;
+        $this->_setAttribute('name', $val);
     }
 
     public function setDob($val) {
-        $this->attributes['dob'] = $val;
+        $this->_setAttribute('dob', $val);
     }
 
     public function setFriends(\KS\JsonApi\ResourceCollectionInterface $r=null) {
-        $this->relationships['friends']->setData($r);
+        $this->_setRelationship('friends', $r);
     }
 
-    public function setBoss(\KS\JsonApi\BaseResourceInterface $r=null) {
-        $this->relationships['boss']->setData($r);
+    public function setBoss(\KS\JsonApi\ResourceInterface $r=null) {
+        $this->_setRelationship('boss', $r);
     }
 
     public function getName() { return $this->attributes['name']; }

@@ -2,8 +2,8 @@
 
 use \KS\JsonApi\Document;
 use \KS\JsonApi\DocumentInterface;
-use \KS\JsonApi\GenericResource;
-use \KS\JsonApi\GenericResourceInterface;
+use \KS\JsonApi\Test\User;
+use \KS\JsonApi\ResourceInterface;
 use \KS\JsonApi\ResourceCollection;
 use \KS\JsonApi\ResourceCollectionInterface;
 use \KS\JsonApi\Error;
@@ -14,36 +14,35 @@ use \KS\JsonApi\MetaInterface;
 use \KS\JsonApi\Link;
 use \KS\JsonApi\LinkInterface;
 use \KS\JsonApi\LinksCollectionInterface;
-use \KS\JsonApi\Test\TestData;
-use \KS\JsonApi\Test\Factory;
+use \KS\JsonApi\Test\Context;
 
 class DocumentTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateBlankDoc() {
-        $doc = new Document(new Factory());
+        $doc = new Document(new Context());
         $this->assertTrue($doc instanceof \KS\JsonApi\DocumentInterface, "Correct: Shouldn't have thrown an error");
     }
 
     public function testDocumentInterface() {
-        $doc = new Document(new Factory());
+        $doc = new Document(new Context());
         $doc->setData(new ResourceCollection([
-            new GenericResource(new Factory(), [
-                'type' => 'test',
+            new User(new Context(), [
+                'type' => 'test-users',
                 'id' => '1',
                 'attributes' => [
-                    'test1' => 1
+                    'name' => 'joni'
                 ]
             ]),
         ]));
 
-        $doc->setData(new GenericResource(new Factory(), [
-            'type' => 'test',
+        $doc->setData(new User(new Context(), [
+            'type' => 'test-users',
             'id' => '1',
             'attributes' => [
-                'test1' => 1
+                'name' => 'joni'
             ]
         ]));
 
-        $doc->addLink(new Link(new Factory(), [
+        $doc->addLink(new Link(new Context(), [
             'name' => 'self',
             'href' => '/test/link',
         ]));
@@ -53,7 +52,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
             'item2' => 2,
         ]));
 
-        $this->assertTrue($doc->getData() instanceof GenericResourceInterface);
+        $this->assertTrue($doc->getData() instanceof ResourceInterface);
         $this->assertTrue($doc->getErrors() instanceof ErrorsCollectionInterface);
         $this->assertTrue($doc->getLinks() instanceof LinksCollectionInterface);
         $this->assertTrue($doc->getLink('self') instanceof LinkInterface);
@@ -68,7 +67,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
 
         $this->assertEquals(json_encode($struct), json_encode($doc));
 
-        $doc->addError(new Error(new Factory(), [
+        $doc->addError(new Error(new Context(), [
             'status' => 400,
             'title' => 'Invalid Data',
             'detail' => 'Malformed entry',
@@ -87,7 +86,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
 
     public function testDocumentRejectsMalformedData() {
         try {
-            new \KS\JsonApi\Document(new Factory(), ['something' => 'invalid']);
+            new \KS\JsonApi\Document(new Context(), ['something' => 'invalid']);
             $this->fail("Should have thrown an exception");
         } catch (\KS\JsonApi\MalformedDataException $e) {
             $this->assertContains("`something`", $e->getMessage());
