@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "cc4577908f63d17ef62e398b9e139ccf",
+    "content-hash": "cc0d057cc60455f99cb1112711c3f0c2",
     "packages": [
         {
             "name": "kael-shipman/php-std-traits",
