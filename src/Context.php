@@ -3,9 +3,9 @@ namespace KS\JsonApi;
 
 class Context implements ContextInterface {
     function newJsonApiDocument($data=null) { return new Document($this, $data); }
-    function newJsonApiResource($data=null, $type=null, $validAttrs=null, $validRels=null) {
-        if ($type !== null) throw new UnknownResourceTypeException("Type `$type` is unknown. You can handle this type by overriding the `newJsonApiResource` method in your factory and adding a handler for the type there.");
-        return new GenericResource($this, $data, $validAttrs, $validRels);
+    function newJsonApiResource($data=null, $type=null, $validAttrs=null, $validRels=null) { return new GenericResource($this, $data, $validAttrs, $validRels); }
+    function convertJsonApiResource(ResourceInterface $src, $conversionType) {
+        throw new \RuntimeException("Programmer: Don't know how to convert to type `$conversionType`. Please implement this by overriding the `convertJsonApiResource` method in your context.");
     }
     function newJsonApiRelationship($data) { return new Relationship($this, $data); }
     function newJsonApiError($data) { return new Error($this, $data); }

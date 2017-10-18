@@ -32,10 +32,10 @@ class GenericResource extends AbstractResource implements GenericResourceInterfa
         $this->restoreFromData();
 
         // If we've passed in initial data, update from that
-        if ($data) $this->updateFromJsonApi($data);
+        if ($data) $this->updateFromData($data);
     }
 
-    public function updateFromJsonApi(array $data) {
+    public function updateFromData(array $data) {
         // Set ID
         if (array_key_exists('id', $data)) {
             $this->setId($data['id']);

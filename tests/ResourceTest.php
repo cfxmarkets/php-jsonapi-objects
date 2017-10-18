@@ -92,7 +92,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals('3', $t->getBoss()->getId(), "Boss should be id 3");
 
         try {
-            $t->updateFromJsonApi([
+            $t->updateFromData([
                 'type' => 'test-not-users',
                 'attributes' => [ 'name' => 'John Chavo' ]
             ]);
@@ -101,7 +101,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             $this->assertTrue(true, "This is the expected behavior");
         }
 
-        $t->updateFromJsonApi([
+        $t->updateFromData([
             'type' => 'test-users',
             'attributes' => [ 'name' => 'John Chavo' ]
         ]);
@@ -109,7 +109,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals('John Chavo', $t->getName(), "Name should now be John Chavo");
         $this->assertEquals('12345', $t->getDob(), "DOB should still be 12345");
 
-        $t->updateFromJsonApi([
+        $t->updateFromData([
             'type' => 'test-users',
             'relationships' => [
                 'friends' => [

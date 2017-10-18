@@ -15,7 +15,7 @@ abstract class AbstractResource implements ResourceInterface {
 
     private $changedAttributes = [];
     private $changedRelationships = [];
-    private $trackChanges = true;
+    protected $trackChanges = true;
 
     /**
      * Fields to track relationship to database.
@@ -92,7 +92,7 @@ abstract class AbstractResource implements ResourceInterface {
         $this->restoreFromData();
 
         // If we've passed in initial data, update from that
-        if ($data) $this->updateFromJsonApi($data);
+        if ($data) $this->updateFromData($data);
     }
 
 
@@ -105,10 +105,50 @@ abstract class AbstractResource implements ResourceInterface {
         $data = $this->context->getCurrentData();
         if ($data) {
             $this->trackChanges = false;
-            $this->updateFromJsonApi($data);
+            $this->updateFromData($data);
             $this->trackChanges = true;
             $this->initialized = true;
         }
+    }
+
+
+    /**
+     * fromResource -- Creates another, different resource object from the given resource
+     *
+     * This method is designed to allow "filtering" of properties and resources between contexts, for
+     * example when converting from a "public-space" resource like an SDK resource to a "private-space"
+     * resource for further manipulation.
+     *
+     * Note: This method is resource type-sensitive. It will choke when trying to create a resource
+     * from a resource of a different declared type. It was not designed to enable polymorphic cloning,
+     * rather, it was to facilitate a security boundary between public-space and protected-space resources.
+     *
+     * Other than that, it is a naive method: If there are properties that match the properties
+     * of the resource being created, they will be used to populate its data. Because of this, it does NOT
+     * populate information about initialization status or changes.
+     *
+     * @param ResourceInterface
+     * @return static
+     */
+    public static function fromResource(ResourceInterface $src) {
+        $targ = new static($r->context);
+        $data = [
+            'id' => $src->id,
+            'type' => $src->resourceType,
+            'attributes' => [],
+            'relationships' => [],
+        ];
+
+        foreach($targ->attributes as $name => $v) {
+            if (array_key_exists($name, $src->attributes)) $targ['attributes'][$name] = $v;
+        }
+        foreach($targ->relationships as $name => $v) {
+            if (array_key_exists($name, $src->relationships)) $targ['relationships'][$name] = $v;
+        }
+
+        $targ->updateFromData($targ);
+
+        return $targ;
     }
 
 
@@ -118,7 +158,7 @@ abstract class AbstractResource implements ResourceInterface {
      * @param array $data A JSON-API-formatted array of data defining attributes and relationships to set
      * @return void
      */
-    public function updateFromJsonApi(array $data) {
+    public function updateFromData(array $data) {
         // Set ID
         if (array_key_exists('id', $data)) {
             $this->setId($data['id']);
