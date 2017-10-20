@@ -260,6 +260,40 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
+     * getChanges
+     *
+     * @return array
+     */
+    public function getChanges() {
+        return [
+            'attributes' => $this->changedAttributes,
+            'relationships' => $this->changedRelationships,
+        ];
+    }
+
+    /**
+     * hasChanges
+     *
+     * @return bool
+     */
+    public function hasChanges() {
+        return (
+            count($this->changedAttributes) +
+            count($this->changedRelationships)
+        ) > 0;
+    }
+
+    /**
+     * save to datasource
+     *
+     * @return static
+     */
+    public function save() {
+        $this->context->save($this);
+        return $this;
+    }
+
+    /**
      * jsonSerialize
      *
      * Serialize to JsonApi-formatted json
@@ -335,12 +369,11 @@ abstract class AbstractResource implements ResourceInterface {
             sort($currentResources);
             if (implode('', $newResources) == implode('', $currentResources)) $changed = false;
         } else {
-            var_dump($val);
             throw new \RuntimeException("Unrecognized relationship type! Relationships should be either Resources or ResourceCollections.");
         }
 
         $this->relationships[$name]->setData($val);
-        if ($changed && $this->trackChanges) $this->changedRelationships[$name] = $val;
+        if ($changed && $this->trackChanges) $this->changedRelationships[$name] = $this->relationships[$name];
 
         return $this;
     }
