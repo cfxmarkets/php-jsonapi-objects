@@ -7,7 +7,7 @@ class Link implements LinkInterface {
     protected $href;
     protected $meta;
 
-    public function __construct(ContextInterface $f, $data=null) {
+    public function __construct(DatasourceInterface $f, $data=null) {
         $this->f = $f;
         if ($data) {
             if (array_key_exists('name', $data)) {

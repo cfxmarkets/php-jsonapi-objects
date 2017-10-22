@@ -2,6 +2,8 @@
 namespace KS\JsonApi\Test;
 
 class User extends \KS\JsonApi\AbstractResource {
+    use Rel2MTrait;
+
     protected $resourceType = 'test-users';
     protected $attributes = [ 'name' => null, 'dob' => null ];
     protected $relationships = [ 'friends', 'boss' ];
@@ -28,6 +30,7 @@ class User extends \KS\JsonApi\AbstractResource {
     public function getBoss() { return $this->relationships['boss']->getData(); }
     public function getFriendsRelationship() { return $this->relationships['friends']; }
     public function getBossRelationship() { return $this->relationships['boss']; }
+
 }
 
 

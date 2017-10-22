@@ -1,12 +1,12 @@
 <?php
 
 use \KS\JsonApi\Test\User;
-use \KS\JsonApi\Test\Context;
+use \KS\JsonApi\Test\Datasource;
 
 class ResourceTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateEmptyResource() {
-        $context = new Context();
-        $t = new User($context);
+        $datasource = new Datasource();
+        $t = new User($datasource);
         $this->assertTrue($t instanceof \KS\JsonApi\ResourceInterface, "Should instantiate a valid User object");
     }
 
@@ -39,9 +39,9 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $context = new Context();
+        $datasource = new Datasource();
 
-        $t = new \KS\JsonApi\Test\User($context, $data);
+        $t = new \KS\JsonApi\Test\User($datasource, $data);
 
         $this->assertTrue($t instanceof \KS\JsonApi\ResourceInterface);
         $this->assertTrue($t->getFriendsRelationship() instanceof \KS\JsonApi\RelationshipInterface);
@@ -81,9 +81,9 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $context = new Context();
+        $datasource = new Datasource();
 
-        $t = new \KS\JsonApi\Test\User($context, $data);
+        $t = new \KS\JsonApi\Test\User($datasource, $data);
 
         $this->assertEquals('Jim Chavo', $t->getName(), "Name should be Jim Chavo");
         $this->assertEquals('12345', $t->getDob(), "DOB should be 12345");
@@ -133,7 +133,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function testThrowsExceptionOnBadData() {
         try {
-            new \KS\JsonApi\Test\User(new \KS\JsonApi\Test\Context(), [ 'id' => '12345', 'type' => 'test-users', 'invalid' => 'extra!!!' ]);
+            new \KS\JsonApi\Test\User(new \KS\JsonApi\Test\Datasource(), [ 'id' => '12345', 'type' => 'test-users', 'invalid' => 'extra!!!' ]);
             $this->fail("Should have thrown an exception");
         } catch(\KS\JsonApi\MalformedDataException $e) {
             $this->assertContains("`invalid`", $e->getMessage());
@@ -154,10 +154,10 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $context = new Context();
+        $datasource = new Datasource();
 
         try {
-            $t = new \KS\JsonApi\Test\User($context, $data);
+            $t = new \KS\JsonApi\Test\User($datasource, $data);
             $this->fail("Should have thrown an exception");
         } catch (\Error $e) {
             $this->assertContains("undefined method", $e->getMessage());
@@ -195,10 +195,10 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $context = new Context();
+        $datasource = new Datasource();
 
         try {
-            $t = new \KS\JsonApi\Test\User($context, $data);
+            $t = new \KS\JsonApi\Test\User($datasource, $data);
             $this->fail("Should have thrown an exception");
         } catch (\Error $e) {
             $this->assertContains("undefined method", $e->getMessage());
@@ -235,9 +235,9 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $context = new Context();
+        $datasource = new Datasource();
 
-        $t = new \KS\JsonApi\Test\User($context, $data);
+        $t = new \KS\JsonApi\Test\User($datasource, $data);
 
         $data = [
             'type' => $data['type'],

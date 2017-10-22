@@ -2,15 +2,15 @@
 namespace KS\JsonApi;
 
 class Relationship implements RelationshipInterface {
-    protected $context;
+    protected $datasource;
 
     protected $name;
     protected $links;
     protected $meta;
     protected $data;
 
-    public function __construct(ContextInterface $context, $data) {
-        $this->context = $context;
+    public function __construct(DatasourceInterface $datasource, $data) {
+        $this->datasource = $datasource;
 
         if (!array_key_exists('name', $data)) throw new \InvalidArgumentException("To construct a Relationship, you must pass a `name` key containing the name of the resource.");
         $this->name = $data['name'];
@@ -19,10 +19,10 @@ class Relationship implements RelationshipInterface {
         if (!array_key_exists('data', $data)) $data['data'] = null;
 
         if ($data['data'] === null) $this->data = null;
-        elseif (array_key_exists('id', $data['data'])) $this->data = $this->context->newJsonApiResource($data['data'], array_key_exists('type', $data['data']) ? $data['data']['type'] : null);
+        elseif (array_key_exists('id', $data['data'])) $this->data = $this->datasource->newJsonApiResource($data['data'], array_key_exists('type', $data['data']) ? $data['data']['type'] : null);
         else {
-            $rc = $this->data = $this->context->newJsonApiResourceCollection();
-            foreach($data['data'] as $r) $rc[] = $this->context->newJsonApiResource($r, array_key_exists('type', $r) ? $r['type'] : null);
+            $rc = $this->data = $this->datasource->newJsonApiResourceCollection();
+            foreach($data['data'] as $r) $rc[] = $this->datasource->newJsonApiResource($r, array_key_exists('type', $r) ? $r['type'] : null);
         }
         unset($data['data']);
 

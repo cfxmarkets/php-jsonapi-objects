@@ -5,7 +5,7 @@ class Document implements DocumentInterface {
     protected $version = "1.0";
 
     protected $baseUrl;
-    protected $context;
+    protected $datasource;
     protected $data;
     protected $errors;
     protected $links;
@@ -13,12 +13,12 @@ class Document implements DocumentInterface {
     protected $included;
     protected $jsonapi;
 
-    public function __construct(ContextInterface $f, $data=null) {
-        $this->context = $f;
+    public function __construct(DatasourceInterface $f, $data=null) {
+        $this->datasource = $f;
         if ($data) {
             if (array_key_exists('errors', $data)) {
                 foreach($data['errors'] as $error) {
-                    if (!($error instanceof Error)) $error = $this->context->newJsonApiError($error);
+                    if (!($error instanceof Error)) $error = $this->datasource->newJsonApiError($error);
                     $this->addError($error);
                 }
                 unset($data['errors']);
@@ -30,12 +30,12 @@ class Document implements DocumentInterface {
                 elseif (is_array($data['data'])) {
                     $isCollection = is_numeric(implode('', array_keys($data['data'])));
                     if ($isCollection) {
-                        $rc = $this->context->newJsonApiResourceCollection();
-                        foreach ($data['data'] as $r) $rc[] = $this->context->newJsonApiResource($r, $r['type']);
+                        $rc = $this->datasource->newJsonApiResourceCollection();
+                        foreach ($data['data'] as $r) $rc[] = $this->datasource->newJsonApiResource($r, $r['type']);
                         $this->data = $rc;
                     } else {
                         if (!array_key_exists('type', $data['data'])) throw new \InvalidArgumentException("If you provide a resource via the `data` key, you MUST specify its type via the `data::type` key (e.g., [ 'data' => [ 'type' => 'my-resources', 'attributes' => [ ... ] ] ]).");
-                        $this->data = $this->context->newJsonApiResource($data['data'], $data['data']['type']);
+                        $this->data = $this->datasource->newJsonApiResource($data['data'], $data['data']['type']);
                     }
                 } else {
                     throw new \InvalidArgumentException("Malformed `data` object in initial data array.");
@@ -45,7 +45,7 @@ class Document implements DocumentInterface {
 
             if (array_key_exists('links', $data)) {
                 if (is_array($data['links'])) {
-                    $links = $this->context->newJsonApiLinksCollection();
+                    $links = $this->datasource->newJsonApiLinksCollection();
                     foreach($data['links'] as $name => $link) {
                         if (!($link instanceof LinkInterface)) {
                             if (is_array($link)) {
@@ -56,7 +56,7 @@ class Document implements DocumentInterface {
                                     'name' => $name,
                                 ];
                             }
-                            $links[$name] = $this->context->newJsonApiLink($link);
+                            $links[$name] = $this->datasource->newJsonApiLink($link);
                         } else {
                             $links[$link->getMemberName()] = $link;
                         }
@@ -72,14 +72,14 @@ class Document implements DocumentInterface {
 
             if (array_key_exists('meta', $data)) {
                 if ($data['meta'] instanceof Meta) $this->meta = $data['meta'];
-                else $this->meta = $this->context->newJsonApiMeta($data['meta']);
+                else $this->meta = $this->datasource->newJsonApiMeta($data['meta']);
                 unset($data['meta']);
             }
 
             if (array_key_exists('included', $data)) {
                 if (!is_array($data['included'])) throw new \InvalidArgumentException("If you pass an array of included resources, it must be an array, not an object or string or null or anything else.");
-                $this->included = $this->context->newJsonApiResourceCollection();
-                foreach($data['included'] as $r) $this->included[] = $this->context->newJsonApiResource($r, $r['type']);
+                $this->included = $this->datasource->newJsonApiResourceCollection();
+                foreach($data['included'] as $r) $this->included[] = $this->datasource->newJsonApiResource($r, $r['type']);
                 unset($data['included']);
             }
 
@@ -102,8 +102,8 @@ class Document implements DocumentInterface {
 
     public function getBaseUrl() { return $this->baseUrl; }
     public function getData() { return $this->data; }
-    public function getErrors() { return $this->errors ?: $this->context->newJsonApiErrorsCollection(); }
-    public function getLinks() { return $this->links ?: $this->context->newJsonApiLinksCollection(); }
+    public function getErrors() { return $this->errors ?: $this->datasource->newJsonApiErrorsCollection(); }
+    public function getLinks() { return $this->links ?: $this->datasource->newJsonApiLinksCollection(); }
     public function getLink($name) {
         if ($this->links) return $this->links[$name];
         else return null;
@@ -124,13 +124,13 @@ class Document implements DocumentInterface {
     }
 
     public function addError(ErrorInterface $e) {
-        if (!$this->errors) $this->errors = $this->context->newJsonApiErrorsCollection();
+        if (!$this->errors) $this->errors = $this->datasource->newJsonApiErrorsCollection();
         $this->errors[] = $e;
         return $this;
     }
 
     public function addLink(LinkInterface $l) {
-        if (!$this->links) $this->links = $this->context->newJsonApiLinksCollection();
+        if (!$this->links) $this->links = $this->datasource->newJsonApiLinksCollection();
         $this->links[$l->getMemberName()] = $l;
         return $this;
     }
@@ -151,9 +151,9 @@ class Document implements DocumentInterface {
             $data['data'] = $this->data;
             if ((!$this->links || !$this->getLink('self')) && $this->data) {
                 if ($this->data instanceof ResourceInterface) {
-                    $this->addLink($this->context->newJsonApiLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data->getSelfLinkPath() ]));
+                    $this->addLink($this->datasource->newJsonApiLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data->getSelfLinkPath() ]));
                 } elseif ($this->data instanceof ResourceCollectionInterface && count($this->data)) {
-                    $this->addLink($this->context->newJsonApiLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data[0]->getCollectionLinkPath() ]));
+                    $this->addLink($this->datasource->newJsonApiLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data[0]->getCollectionLinkPath() ]));
                 }
             }
         }

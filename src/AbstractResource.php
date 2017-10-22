@@ -4,8 +4,8 @@ namespace KS\JsonApi;
 abstract class AbstractResource implements ResourceInterface {
     use \KS\ErrorHandlerTrait;
 
-    /** This resource's instance of the Context **/
-    protected $context;
+    /** This resource's instance of the Datasource **/
+    protected $datasource;
 
     /** Fields that match with JSON-API Resource fields **/
     protected $id;
@@ -63,12 +63,12 @@ abstract class AbstractResource implements ResourceInterface {
      *     public function removeAddress(AddressInterface $address);
      *     public function setBoss(PersonInterface $boss);
      *
-     * @param FactoryInterface $context A factory with which to instantiate child objects
+     * @param FactoryInterface $datasource A factory with which to instantiate child objects
      * @param array $data An optional array of user data with which to initialize the object
      * @return static
      */
-    public function __construct(ContextInterface $context, $data=null) {
-        $this->context = $context;
+    public function __construct(DatasourceInterface $datasource, $data=null) {
+        $this->datasource = $datasource;
 
         // Set all attributes to null initially, saving default values
         $defaultAttrVals = [];
@@ -85,7 +85,7 @@ abstract class AbstractResource implements ResourceInterface {
 
         // Set relationships
         $relationships = [];
-        foreach($this->relationships as $name) $relationships[$name] = $this->context->newJsonApiRelationship(['name' => $name]);
+        foreach($this->relationships as $name) $relationships[$name] = $this->datasource->newJsonApiRelationship(['name' => $name]);
         $this->relationships = $relationships;
 
         // Check to see if there's data waiting for us in our database
@@ -97,12 +97,12 @@ abstract class AbstractResource implements ResourceInterface {
 
 
     /**
-     * Restore an object from data persisted to a secure context
+     * Restore an object from data persisted to a secure datasource
      *
-     * This method is called from the constructor ONLY and is intended to allow the context 
+     * This method is called from the constructor ONLY and is intended to allow the datasource 
      */
     protected function restoreFromData() {
-        $data = $this->context->getCurrentData();
+        $data = $this->datasource->getCurrentData();
         if ($data) {
             $this->trackChanges = false;
             $this->updateFromData($data);
@@ -131,7 +131,7 @@ abstract class AbstractResource implements ResourceInterface {
      * @return static
      */
     public static function fromResource(ResourceInterface $src) {
-        $targ = new static($r->context);
+        $targ = new static($r->datasource);
         $data = [
             'id' => $src->id,
             'type' => $src->resourceType,
@@ -187,7 +187,7 @@ abstract class AbstractResource implements ResourceInterface {
             foreach($data['relationships'] as $name => $rel) {
                 if (!($rel instanceof RelationshipInterface)) {
                     $rel['name'] = $name;
-                    $rel = $this->context->newJsonApiRelationship($rel);
+                    $rel = $this->datasource->newJsonApiRelationship($rel);
                 }
 
                 // Validate that the relationship is settable
@@ -289,7 +289,7 @@ abstract class AbstractResource implements ResourceInterface {
      * @return static
      */
     public function save() {
-        $this->context->save($this);
+        $this->datasource->save($this);
         return $this;
     }
 

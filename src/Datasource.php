@@ -1,11 +1,11 @@
 <?php
 namespace KS\JsonApi;
 
-class Context implements ContextInterface {
+class Datasource implements DatasourceInterface {
     function newJsonApiDocument($data=null) { return new Document($this, $data); }
     function newJsonApiResource($data=null, $type=null, $validAttrs=null, $validRels=null) { return new GenericResource($this, $data, $validAttrs, $validRels); }
     function convertJsonApiResource(ResourceInterface $src, $conversionType) {
-        throw new \RuntimeException("Programmer: Don't know how to convert to type `$conversionType`. Please implement this by overriding the `convertJsonApiResource` method in your context.");
+        throw new \RuntimeException("Programmer: Don't know how to convert to type `$conversionType`. Please implement this by overriding the `convertJsonApiResource` method in your datasource.");
     }
     function newJsonApiRelationship($data) { return new Relationship($this, $data); }
     function newJsonApiError($data) { return new Error($this, $data); }

@@ -15,7 +15,7 @@ trait Rel2MTrait {
         if (!in_array($name, $this->initializedRelationships)) $this->initialize2MRel($name);
         try {
             $index = $this->indexOf2MRel($name, $resource);
-            return $index !== false;
+            return true;
         } catch (CollectionUndefinedIndexException $e) {
             return false;
         }
@@ -39,10 +39,13 @@ trait Rel2MTrait {
     }
 
     protected function initialize2MRel($name) {
-        $client = explode('-', $this->resourceType);
-        for($i = 1; $i < count($client); $i++) $client[$i] = ucfirst($client[$i]);
-        $client = implode('', $client);
         $collection = $this->datasource->getRelated($name, $this->getId());
+
+        // Get any relationships that may have been added before the relationship was initialized
+        $currentRelationships = [];
+        if ($this->relationships[$name] !== null && $this->relationships[$name]->getData()) {
+            $currentRelationships = $this->relationships[$name]->getData();
+        }
 
         $this->trackChanges = false;
         $this->_setRelationship($name, $collection);

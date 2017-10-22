@@ -5,8 +5,8 @@ class GenericResource extends AbstractResource implements GenericResourceInterfa
     protected $validAttributes;
     protected $validRelationships;
 
-    public function __construct(ContextInterface $context, $data=null, $validAttributes=null, $validRelationships=null) {
-        $this->context = $context;
+    public function __construct(DatasourceInterface $datasource, $data=null, $validAttributes=null, $validRelationships=null) {
+        $this->datasource = $datasource;
 
         // Set all attributes to null initially, then to default values
         if ($validAttributes) {
@@ -25,7 +25,7 @@ class GenericResource extends AbstractResource implements GenericResourceInterfa
         if ($validRelationships) {
             $this->validRelationships = $validRelationships;
             $relationships = [];
-            foreach($this->validRelationships as $name) $relationships[$name] = $this->context->newJsonApiRelationship(['name' => $name]);
+            foreach($this->validRelationships as $name) $relationships[$name] = $this->datasource->newJsonApiRelationship(['name' => $name]);
         }
 
         // Check to see if there's data waiting for us in our database
@@ -60,7 +60,7 @@ class GenericResource extends AbstractResource implements GenericResourceInterfa
             foreach($data['relationships'] as $name => $rel) {
                 if (!($rel instanceof RelationshipInterface)) {
                     $rel['name'] = $name;
-                    $rel = $this->context->newJsonApiRelationship($rel);
+                    $rel = $this->datasource->newJsonApiRelationship($rel);
                 }
 
                 // Finally, set the relationship through it's setter
@@ -89,7 +89,7 @@ class GenericResource extends AbstractResource implements GenericResourceInterfa
         if ($r && !($r instanceof ResourceInterface) && !($r instanceof ResourceCollectionInterface)) throw new \InvalidArgumentException("Relationships must be set to a Resource, a ResourceCollection or null");
         if ($this->validRelationships && !in_array($r->getName(), $this->validRelationships)) throw new \InvalidArgumentException("Invalid relationship passed: This resource has defined a set of valid relationships which does not include `{$r->getName()}`. Valid relationships are ".implode(', ', $this->validRelationships).".");
         if (!$this->relationships) $this->relationships = [];
-        if (!array_key_exists($name, $this->relationships)) $this->relationships[$name] = $this->context->newJsonApiRelationship(['name' => $name]);
+        if (!array_key_exists($name, $this->relationships)) $this->relationships[$name] = $this->datasource->newJsonApiRelationship(['name' => $name]);
         $this->relationships[$name]->setData($r);
         $this->validateRelationship($name);
     }
@@ -102,7 +102,7 @@ class GenericResource extends AbstractResource implements GenericResourceInterfa
     public function getRelationships() { return $this->relationships ?: []; }
     public function getRelationship($k) {
         if ($this->validRelationships && !in_array($k, $this->validRelationships)) throw new UnknownRelationshipException("The relationship you've requested, `$k`, is not a valid relationship on this resource.");
-        if (!$this->relationships || !array_key_exists($k, $this->relationships)) $this->setRelationship($this->context->newJsonApiRelationship(['name' => $k]));
+        if (!$this->relationships || !array_key_exists($k, $this->relationships)) $this->setRelationship($this->datasource->newJsonApiRelationship(['name' => $k]));
         return $this->relationships[$k];
     }
 
