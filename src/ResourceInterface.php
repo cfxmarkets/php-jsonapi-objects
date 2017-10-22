@@ -1,11 +1,11 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
-interface ResourceInterface extends \JsonSerializable, \KS\ErrorHandlerInterface {
+interface ResourceInterface extends DataInterface, \JsonSerializable, \KS\ErrorHandlerInterface {
     function getResourceType();
     function getId();
     function setId($id);
-    function updateFromJsonApi(array $data);
+    function updateFromData(array $data);
     function getChanges();
     function hasChanges();
     function save();

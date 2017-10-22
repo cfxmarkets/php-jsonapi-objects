@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 trait Rel2MTrait {
     protected function get2MRel($name) {

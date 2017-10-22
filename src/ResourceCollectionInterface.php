@@ -1,6 +1,6 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
-interface ResourceCollectionInterface extends CollectionInterface {
+interface ResourceCollectionInterface extends DataInterface, CollectionInterface {
 }
 

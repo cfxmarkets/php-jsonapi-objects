@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class Meta extends Collection implements MetaInterface {
 }

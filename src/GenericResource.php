@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class GenericResource extends AbstractResource implements GenericResourceInterface {
     protected $validAttributes;

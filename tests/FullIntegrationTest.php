@@ -1,7 +1,7 @@
 <?php
 
-use \KS\JsonApi as japi;
-use \KS\JsonApi\Test\TestData;
+use \CFX\JsonApi as japi;
+use \CFX\JsonApi\Test\TestData;
 
 class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
     public function testCorrectlyUnserializesJsonApiDoc() {
@@ -52,5 +52,5 @@ class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
 
 
 
-    protected function context() { return new \KS\JsonApi\Test\Context(); }
+    protected function context() { return new \CFX\JsonApi\Test\Context(); }
 }

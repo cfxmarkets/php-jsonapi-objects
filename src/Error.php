@@ -1,8 +1,7 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class Error implements ErrorInterface {
-    protected $datasource;
     protected $fields = ['id','status','code','title','detail','source','links','meta'];
 
     protected $id;
@@ -14,9 +13,7 @@ class Error implements ErrorInterface {
     protected $source;
     protected $meta;
 
-    public function __construct(DatasourceInterface $datasource, $props) {
-        $this->datasource = $datasource;
-
+    public function __construct(array $props) {
         if (!array_key_exists('status', $props)) throw new \InvalidArgumentException("You must include a `status` key in your initial properties array");
         if (!array_key_exists('title', $props)) throw new \InvalidArgumentException("You must include a `title` key in your initial properties array");
 

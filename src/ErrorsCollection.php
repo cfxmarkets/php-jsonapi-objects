@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class ErrorsCollection extends Collection implements ErrorsCollectionInterface {
     protected $stringIndexable = false;

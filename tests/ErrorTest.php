@@ -1,6 +1,6 @@
 <?php
 
-use \KS\JsonApi\Error;
+use \CFX\JsonApi\Error;
 
 class ErrorTest extends \PHPUnit\Framework\TestCase {
     public function testErrorThrowsErrorOnEmptyInstantiation() {
@@ -77,7 +77,7 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
         try {
             new Error($this->context(), ['status' => 400, 'title' => 'some title', 'detail' => 'some detail', 'extra' => 'extra!!!']);
             $this->fail("Should have thrown an exception");
-        } catch(\KS\JsonApi\MalformedDataException $e) {
+        } catch(\CFX\JsonApi\MalformedDataException $e) {
             $this->assertContains("`extra`", $e->getMessage());
             $this->assertEquals("Error (`some title`)", $e->getOffender());
             $this->assertEquals(['extra'=>'extra!!!'], $e->getOffendingData());
@@ -97,6 +97,6 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
 
 
 
-    protected function context() { return new \KS\JsonApi\Test\Context(); }
+    protected function context() { return new \CFX\JsonApi\Test\Context(); }
 }
 

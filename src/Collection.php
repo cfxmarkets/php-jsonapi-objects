@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class Collection implements CollectionInterface  {
     use \KS\ArrayAccessTrait {

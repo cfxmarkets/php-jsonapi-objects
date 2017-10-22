@@ -1,7 +1,7 @@
 <?php
-namespace KS\JsonApi\Test;
+namespace CFX\JsonApi\Test;
 
-class User extends \KS\JsonApi\AbstractResource {
+class User extends \CFX\JsonApi\AbstractResource {
     use Rel2MTrait;
 
     protected $resourceType = 'test-users';
@@ -16,11 +16,11 @@ class User extends \KS\JsonApi\AbstractResource {
         $this->_setAttribute('dob', $val);
     }
 
-    public function setFriends(\KS\JsonApi\ResourceCollectionInterface $r=null) {
+    public function setFriends(\CFX\JsonApi\ResourceCollectionInterface $r=null) {
         $this->_setRelationship('friends', $r);
     }
 
-    public function setBoss(\KS\JsonApi\ResourceInterface $r=null) {
+    public function setBoss(\CFX\JsonApi\ResourceInterface $r=null) {
         $this->_setRelationship('boss', $r);
     }
 

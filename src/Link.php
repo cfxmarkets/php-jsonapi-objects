@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class Link implements LinkInterface {
     protected $f;
@@ -24,7 +24,7 @@ class Link implements LinkInterface {
                 if ($data['meta'] !== null) {
                     if (is_array($data['meta'])) $this->meta = $this->f->newJsonApiMeta($data['meta']);
                     elseif ($data['meta'] instanceof MetaInterface) $this->meta = $data['meta'];
-                    else throw new \InvalidArgumentException("Meta must be an array representation of a meta object or an official \\KS\\JsonApi\\Meta object");
+                    else throw new \InvalidArgumentException("Meta must be an array representation of a meta object or an official \\CFX\\JsonApi\\Meta object");
                 }
                 unset($data['meta']);
             }

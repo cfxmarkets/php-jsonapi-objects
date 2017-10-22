@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class LinksCollection extends IndexedCollection implements LinksCollectionInterface {
     public function offsetSet($offset, $value) {

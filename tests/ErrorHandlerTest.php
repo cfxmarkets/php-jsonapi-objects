@@ -1,11 +1,11 @@
 <?php
 
-use \KS\JsonApi\Error;
+use \CFX\JsonApi\Error;
 
 class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
     public function testErrors() {
-        $f = new \KS\JsonApi\Test\Context();
-        $t = new \KS\JsonApi\Test\TestErrorHandler();
+        $f = new \CFX\JsonApi\Test\Context();
+        $t = new \CFX\JsonApi\Test\TestErrorHandler();
 
         $this->assertFalse($t->hasErrors());
         $this->assertFalse($t->hasErrors('testField'));
@@ -70,12 +70,12 @@ class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testThrowsExceptionOnNonJsonApiError() {
-        $t = new \KS\JsonApi\Test\TestErrorHandler();
+        $t = new \CFX\JsonApi\Test\TestErrorHandler();
         try {
             $t->produceError('testField', null, 'Some message');
             $this->fail("Should have thrown an exception");
         } catch (\Exception $e) {
-            $this->assertContains("KS\JsonApi\ErrorInterface", $e->getMessage(), "This is the expected behavior");
+            $this->assertContains("CFX\JsonApi\ErrorInterface", $e->getMessage(), "This is the expected behavior");
         }
     }
 }

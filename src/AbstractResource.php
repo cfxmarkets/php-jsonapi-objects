@@ -1,11 +1,14 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 abstract class AbstractResource implements ResourceInterface {
     use \KS\ErrorHandlerTrait;
 
-    /** This resource's instance of the Datasource **/
+    /** This resource's instance of the Datasource. **/
     protected $datasource;
+
+    /** This resource's factory instance for instantiating other jsonapi family members **/
+    protected $factory;
 
     /** Fields that match with JSON-API Resource fields **/
     protected $id;
@@ -36,15 +39,15 @@ abstract class AbstractResource implements ResourceInterface {
      * If $data is provided, it is used to set fields. If $data contains a `type` field, it cannot conflict with any
      * pre-set type or an Exception will be thrown.
      *
-     * You may define the valid attributes and relationships in the `$attributes` and `relationships` arrays. Attributes
-     * may have default values, though relationships may not. These are the arrays that are dumped when the object is
+     * You may define the valid attributes and relationships in the `$attributes` and `relationships` arrays. Either may have
+     * default values (if it makes sense).. These are the arrays that are dumped when the object is
      * serialized to JSON, so they should represent the object's *public* attributes and relationships. Any private
      * attributes or relationships should be stored elsewhere.
      *
      * On initialization, this class merges incoming attributes and relationships with the ones given in the `$attributes`
      * and `$relationships` arrays and uses them to set values via special `set*` methods. YOU ARE RESPONSIBLE FOR
      * CREATING A `set*` METHOD FOR EACH ATTRIBUTE AND RELATIONSHIP THAT THE OBJECT CAN MANAGE, PUBLIC OR PRIVATE. If
-     * you do not create these methods, an Error will be thrown.
+     * you do not create these methods, an exception will be thrown.
      *
      * You should make sure you do proper validation in these `set*` methods, since this will ensure that your resource
      * is always aware of its errors.
@@ -63,35 +66,46 @@ abstract class AbstractResource implements ResourceInterface {
      *     public function removeAddress(AddressInterface $address);
      *     public function setBoss(PersonInterface $boss);
      *
-     * @param FactoryInterface $datasource A factory with which to instantiate child objects
      * @param array $data An optional array of user data with which to initialize the object
      * @return static
      */
     public function __construct(DatasourceInterface $datasource, $data=null) {
         $this->datasource = $datasource;
 
+        $defaultData = [
+            'attributes' => [],
+            'relationships' => [],
+        ];
+
         // Set all attributes to null initially, saving default values
-        $defaultAttrVals = [];
         foreach($this->attributes as $attr => $v) {
-            $defaultAttrVals[$attr] = $v;
+            if (is_int($attr)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$attributes = [ 'name' => null, 'active' => true ];`. Offending attribute: `$attr: $v`.");
+
+            $defaultData['attributes'][$attr] = $v;
             $this->attributes[$attr] = null;
         }
 
-        // Set default values using setters (to trigger validation and change tracking)
-        foreach($defaultAttrVals as $attr => $v) {
-            $setAttribute = "set".ucfirst($attr);
-            $this->$setAttribute($v);
+        // Set relationships to null relationships, saving defaults
+        foreach($this->relationships as $name => $v) {
+            if (is_int($name)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$relationships = [ 'friends' => [ 'data' => null ] ];`. Offending relationship: `$name: $v`.");
+
+            $defaultData['relationships'][$name] = $v;
+            $this->relationships[$name] = $this->getFactory()->newRelationship($name);
         }
 
-        // Set relationships
-        $relationships = [];
-        foreach($this->relationships as $name) $relationships[$name] = $this->datasource->newJsonApiRelationship(['name' => $name]);
-        $this->relationships = $relationships;
+        // update from data with default values to trigger validation and change tracking.
+        try {
+            $this->updateFromData($defaultData);
+        } catch (UnknownAttributeException $e) {
+            throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a setter for attribute `{$e->getOffenders()[0]}`. All attributes should have setters, though these setters don't have to be in the public scope.");
+        } catch (UnknownRelationshipException $e) {
+            throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a setter for relationship `{$e->getOffenders()[0]}`. All relationships should have setters, though these setters don't have to be in the public scope. (Relationships setters should set the *data* for the relationship, that is, they should receive a ResourceInterface, a ResourceCollectionInterface, or null.)");
+        }
 
         // Check to see if there's data waiting for us in our database
         $this->restoreFromData();
 
-        // If we've passed in initial data, update from that
+        // Finally, if we've passed in initial data, update from that
         if ($data) $this->updateFromData($data);
     }
 
@@ -99,14 +113,15 @@ abstract class AbstractResource implements ResourceInterface {
     /**
      * Restore an object from data persisted to a secure datasource
      *
-     * This method is called from the constructor ONLY and is intended to allow the datasource 
+     * This method is called from the constructor ONLY and is intended to allow the datasource to reliably
+     * inflate objects.
      */
     protected function restoreFromData() {
         $data = $this->datasource->getCurrentData();
         if ($data) {
-            $this->trackChanges = false;
             $this->updateFromData($data);
-            $this->trackChanges = true;
+            $this->changedAttributes = [];
+            $this->changedRelationships = [];
             $this->initialized = true;
         }
     }
@@ -131,7 +146,8 @@ abstract class AbstractResource implements ResourceInterface {
      * @return static
      */
     public static function fromResource(ResourceInterface $src) {
-        $targ = new static($r->datasource);
+        $targ = new static($this->datasource);
+
         $data = [
             'id' => $src->id,
             'type' => $src->resourceType,
@@ -176,7 +192,10 @@ abstract class AbstractResource implements ResourceInterface {
         if (array_key_exists('attributes', $data)) {
             foreach($data['attributes'] as $n => $v) {
                 $setAttribute = "set".ucfirst($n);
-                if (!method_exists($this, $setAttribute)) throw new UnknownAttributeException("You've passed an attribute (`$n`) that is not valid for this resource.");
+                if (!method_exists($this, $setAttribute)) {
+                    throw (new UnknownAttributeException("You've passed an attribute (`$n`) that is not valid for this resource."))
+                        ->addOffender($n);
+                }
                 $this->$setAttribute($v);
             }
             unset($data['attributes']);
@@ -185,14 +204,19 @@ abstract class AbstractResource implements ResourceInterface {
         // Set Relationships
         if (array_key_exists('relationships', $data)) {
             foreach($data['relationships'] as $name => $rel) {
+
+                // If it's not already a relationship instance, turn it into one
                 if (!($rel instanceof RelationshipInterface)) {
-                    $rel['name'] = $name;
-                    $rel = $this->datasource->newJsonApiRelationship($rel);
+                    $rel['name'] => $name;
+                    $rel = $this->getFactory()->newRelationship($rel);
                 }
 
                 // Validate that the relationship is settable
                 $setRelationship = "set".ucfirst($name);
-                if (!method_exists($this, $setRelationship)) throw new UnknownRelationshipException("You've passed a relationship (`$name`) that is not valid for this resource.");
+                if (!method_exists($this, $setRelationship)) {
+                    throw (new UnknownRelationshipException("You've passed a relationship (`$name`) that is not valid for this resource."))
+                        ->addOffender($name);
+                }
 
                 // Finally, set the relationship through it's setter
                 $this->$setRelationship($rel->getData());
@@ -265,10 +289,12 @@ abstract class AbstractResource implements ResourceInterface {
      * @return array
      */
     public function getChanges() {
-        return [
-            'attributes' => $this->changedAttributes,
-            'relationships' => $this->changedRelationships,
-        ];
+        $changes = ['type' => $this->getResourceType()];
+        if ($this->getId()) $changes['id'] = $this->getId();
+        $changes['attributes'] = $this->changedAttributes;
+        $changes['relationships'] = $this->changedRelationships;
+
+        return $changes;
     }
 
     /**
@@ -369,13 +395,21 @@ abstract class AbstractResource implements ResourceInterface {
             sort($currentResources);
             if (implode('', $newResources) == implode('', $currentResources)) $changed = false;
         } else {
-            throw new \RuntimeException("Unrecognized relationship type! Relationships should be either Resources or ResourceCollections.");
+            throw new \RuntimeException("Unrecognized relationship type! Relationships should be Resources, ResourceCollections or null.");
         }
 
         $this->relationships[$name]->setData($val);
         if ($changed && $this->trackChanges) $this->changedRelationships[$name] = $this->relationships[$name];
 
         return $this;
+    }
+
+    /**
+     * get this resource's factory (optionally overridable by child classes)
+     */
+    protected function getFactory() {
+        if (!$this->factory) $this->factory = new Factory();
+        return $this->factory;
     }
 }
 

@@ -1,13 +1,13 @@
 <?php
 
-use \KS\JsonApi\Test\User;
-use \KS\JsonApi\Test\Datasource;
+use \CFX\JsonApi\Test\User;
+use \CFX\JsonApi\Test\Datasource;
 
 class ResourceTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateEmptyResource() {
         $datasource = new Datasource();
         $t = new User($datasource);
-        $this->assertTrue($t instanceof \KS\JsonApi\ResourceInterface, "Should instantiate a valid User object");
+        $this->assertTrue($t instanceof \CFX\JsonApi\ResourceInterface, "Should instantiate a valid User object");
     }
 
     public function testCanCreateValidResource() {
@@ -41,13 +41,13 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $datasource = new Datasource();
 
-        $t = new \KS\JsonApi\Test\User($datasource, $data);
+        $t = new \CFX\JsonApi\Test\User($datasource, $data);
 
-        $this->assertTrue($t instanceof \KS\JsonApi\ResourceInterface);
-        $this->assertTrue($t->getFriendsRelationship() instanceof \KS\JsonApi\RelationshipInterface);
-        $this->assertTrue($t->getBossRelationship() instanceof \KS\JsonApi\RelationshipInterface);
-        $this->assertTrue($t->getFriends() instanceof \KS\JsonApi\ResourceCollectionInterface);
-        $this->assertTrue($t->getBoss() instanceof \KS\JsonApi\ResourceInterface);
+        $this->assertTrue($t instanceof \CFX\JsonApi\ResourceInterface);
+        $this->assertTrue($t->getFriendsRelationship() instanceof \CFX\JsonApi\RelationshipInterface);
+        $this->assertTrue($t->getBossRelationship() instanceof \CFX\JsonApi\RelationshipInterface);
+        $this->assertTrue($t->getFriends() instanceof \CFX\JsonApi\ResourceCollectionInterface);
+        $this->assertTrue($t->getBoss() instanceof \CFX\JsonApi\ResourceInterface);
         $this->assertEquals('Jim Chavo', $t->getName());
         $this->assertEquals('12345', $t->getDob());
     }
@@ -83,7 +83,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $datasource = new Datasource();
 
-        $t = new \KS\JsonApi\Test\User($datasource, $data);
+        $t = new \CFX\JsonApi\Test\User($datasource, $data);
 
         $this->assertEquals('Jim Chavo', $t->getName(), "Name should be Jim Chavo");
         $this->assertEquals('12345', $t->getDob(), "DOB should be 12345");
@@ -133,9 +133,9 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function testThrowsExceptionOnBadData() {
         try {
-            new \KS\JsonApi\Test\User(new \KS\JsonApi\Test\Datasource(), [ 'id' => '12345', 'type' => 'test-users', 'invalid' => 'extra!!!' ]);
+            new \CFX\JsonApi\Test\User(new \CFX\JsonApi\Test\Datasource(), [ 'id' => '12345', 'type' => 'test-users', 'invalid' => 'extra!!!' ]);
             $this->fail("Should have thrown an exception");
-        } catch(\KS\JsonApi\MalformedDataException $e) {
+        } catch(\CFX\JsonApi\MalformedDataException $e) {
             $this->assertContains("`invalid`", $e->getMessage());
             $this->assertEquals("Resource (`test-users`)", $e->getOffender());
             $this->assertEquals(['invalid'=>'extra!!!'], $e->getOffendingData());
@@ -157,7 +157,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $datasource = new Datasource();
 
         try {
-            $t = new \KS\JsonApi\Test\User($datasource, $data);
+            $t = new \CFX\JsonApi\Test\User($datasource, $data);
             $this->fail("Should have thrown an exception");
         } catch (\Error $e) {
             $this->assertContains("undefined method", $e->getMessage());
@@ -198,7 +198,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $datasource = new Datasource();
 
         try {
-            $t = new \KS\JsonApi\Test\User($datasource, $data);
+            $t = new \CFX\JsonApi\Test\User($datasource, $data);
             $this->fail("Should have thrown an exception");
         } catch (\Error $e) {
             $this->assertContains("undefined method", $e->getMessage());
@@ -237,7 +237,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $datasource = new Datasource();
 
-        $t = new \KS\JsonApi\Test\User($datasource, $data);
+        $t = new \CFX\JsonApi\Test\User($datasource, $data);
 
         $data = [
             'type' => $data['type'],

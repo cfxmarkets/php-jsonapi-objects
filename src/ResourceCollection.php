@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class ResourceCollection extends Collection implements ResourceCollectionInterface {
     public function offsetSet($offset, $value) {

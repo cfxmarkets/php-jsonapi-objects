@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class Document implements DocumentInterface {
     protected $version = "1.0";

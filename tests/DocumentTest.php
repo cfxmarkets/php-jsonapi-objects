@@ -1,25 +1,25 @@
 <?php
 
-use \KS\JsonApi\Document;
-use \KS\JsonApi\DocumentInterface;
-use \KS\JsonApi\Test\User;
-use \KS\JsonApi\ResourceInterface;
-use \KS\JsonApi\ResourceCollection;
-use \KS\JsonApi\ResourceCollectionInterface;
-use \KS\JsonApi\Error;
-use \KS\JsonApi\ErrorInterface;
-use \KS\JsonApi\ErrorsCollectionInterface;
-use \KS\JsonApi\Meta;
-use \KS\JsonApi\MetaInterface;
-use \KS\JsonApi\Link;
-use \KS\JsonApi\LinkInterface;
-use \KS\JsonApi\LinksCollectionInterface;
-use \KS\JsonApi\Test\Context;
+use \CFX\JsonApi\Document;
+use \CFX\JsonApi\DocumentInterface;
+use \CFX\JsonApi\Test\User;
+use \CFX\JsonApi\ResourceInterface;
+use \CFX\JsonApi\ResourceCollection;
+use \CFX\JsonApi\ResourceCollectionInterface;
+use \CFX\JsonApi\Error;
+use \CFX\JsonApi\ErrorInterface;
+use \CFX\JsonApi\ErrorsCollectionInterface;
+use \CFX\JsonApi\Meta;
+use \CFX\JsonApi\MetaInterface;
+use \CFX\JsonApi\Link;
+use \CFX\JsonApi\LinkInterface;
+use \CFX\JsonApi\LinksCollectionInterface;
+use \CFX\JsonApi\Test\Context;
 
 class DocumentTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateBlankDoc() {
         $doc = new Document(new Context());
-        $this->assertTrue($doc instanceof \KS\JsonApi\DocumentInterface, "Correct: Shouldn't have thrown an error");
+        $this->assertTrue($doc instanceof \CFX\JsonApi\DocumentInterface, "Correct: Shouldn't have thrown an error");
     }
 
     public function testDocumentInterface() {
@@ -86,9 +86,9 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
 
     public function testDocumentRejectsMalformedData() {
         try {
-            new \KS\JsonApi\Document(new Context(), ['something' => 'invalid']);
+            new \CFX\JsonApi\Document(new Context(), ['something' => 'invalid']);
             $this->fail("Should have thrown an exception");
-        } catch (\KS\JsonApi\MalformedDataException $e) {
+        } catch (\CFX\JsonApi\MalformedDataException $e) {
             $this->assertContains("`something`", $e->getMessage());
             $this->assertEquals("Document", $e->getOffender());
             $this->assertEquals(['something'=>'invalid'], $e->getOffendingData());
