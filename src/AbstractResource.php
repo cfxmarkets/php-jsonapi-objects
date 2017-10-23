@@ -90,7 +90,7 @@ abstract class AbstractResource implements ResourceInterface {
             if (is_int($name)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$relationships = [ 'friends' => [ 'data' => null ] ];`. Offending relationship: `$name: $v`.");
 
             $defaultData['relationships'][$name] = $v;
-            $this->relationships[$name] = $this->getFactory()->newRelationship($name);
+            $this->relationships[$name] = $this->getFactory()->newRelationship(['name' => $name]);
         }
 
         // update from data with default values to trigger validation and change tracking.
@@ -207,7 +207,7 @@ abstract class AbstractResource implements ResourceInterface {
 
                 // If it's not already a relationship instance, turn it into one
                 if (!($rel instanceof RelationshipInterface)) {
-                    $rel['name'] => $name;
+                    $rel['name'] = $name;
                     $rel = $this->getFactory()->newRelationship($rel);
                 }
 
@@ -227,7 +227,7 @@ abstract class AbstractResource implements ResourceInterface {
         // Now throw errors on leftover data
         if (count($data) > 0) {
             $e = new MalformedDataException("You have unrecognized data in your JsonApi Resource. Offending keys are: `".implode('`, `', array_keys($data))."`.");
-            $e->setOffender("Resource (`$this->resourceType`)");
+            $e->addOffender("Resource (`$this->resourceType`)");
             $e->setOffendingData($data);
             throw $e;
         }

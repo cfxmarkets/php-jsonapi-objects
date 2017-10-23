@@ -13,6 +13,9 @@ class Relationship implements RelationshipInterface {
         // Set name (mandatory)
         if (!array_key_exists('name', $data)) throw new \RuntimeException("Programmer: You must set the `name` key in the `\$data` array when instantiating a Relationship. (This is not part of the JSON API spec, so you usually have to do this manually.)");
         $this->name = $data['name'];
+        unset($data['name']);
+
+        if (!array_key_exists('data', $data)) $data['data'] = null;
 
         // Set data
         if ($data['data'] === null) $this->data = null;
@@ -38,7 +41,7 @@ class Relationship implements RelationshipInterface {
         // If there's extra data, throw an exception
         if (count($data) > 0) {
             $e = new MalformedDataException("You have unrecognized data in your JsonApi Relationship. Offending keys are: `".implode('`, `', array_keys($data))."`.");
-            $e->setOffender("Relationship (`$this->name`)");
+            $e->addOffender("Relationship (`$this->name`)");
             $e->setOffendingData($data);
             throw $e;
         }
