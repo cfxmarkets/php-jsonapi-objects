@@ -16,6 +16,10 @@ abstract class AbstractResource implements ResourceInterface {
     protected $attributes = [];
     protected $relationships = [];
 
+    /** Flag for honoring read-only attributes and relationships **/
+    private $honorReadonly = true;
+
+    /** Change-tracking properties **/
     private $changedAttributes = [];
     private $changedRelationships = [];
     protected $trackChanges = true;
@@ -95,7 +99,7 @@ abstract class AbstractResource implements ResourceInterface {
 
         // update from data with default values to trigger validation and change tracking.
         try {
-            $this->updateFromData($defaultData);
+            $this->internalUpdateFromData($defaultData);
         } catch (UnknownAttributeException $e) {
             throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a setter for attribute `{$e->getOffenders()[0]}`. All attributes should have setters, though these setters don't have to be in the public scope.");
         } catch (UnknownRelationshipException $e) {
@@ -114,12 +118,13 @@ abstract class AbstractResource implements ResourceInterface {
      * Restore an object from data persisted to a secure datasource
      *
      * This method is called from the constructor ONLY and is intended to allow the datasource to reliably
-     * inflate objects.
+     * inflate objects. It may also be called by a datasource to update an object with the returned fields
+     * in the event of a `save`.
      */
-    protected function restoreFromData() {
+    public function restoreFromData() {
         $data = $this->datasource->getCurrentData();
         if ($data) {
-            $this->updateFromData($data);
+            $this->internalUpdateFromData($data);
             $this->changedAttributes = [];
             $this->changedRelationships = [];
             $this->initialized = true;
@@ -169,6 +174,19 @@ abstract class AbstractResource implements ResourceInterface {
 
 
     /**
+     * internalUpdateFromData -- Updates data using the `updateFromData` method, but disables read-only checking
+     * to allow default and sourced data to be loaded in.
+     *
+     * @see self::updateFromData
+     */
+    protected function internalUpdateFromData(array $data) {
+        $this->honorReadOnly = false;
+        $this->updateFromData($data);
+        $this->honorReadOnly = true;
+    }
+
+
+    /**
      * Update fields from passed-in user data in jsonapi format
      *
      * @param array $data A JSON-API-formatted array of data defining attributes and relationships to set
@@ -207,7 +225,30 @@ abstract class AbstractResource implements ResourceInterface {
 
                 // If it's not already a relationship instance, turn it into one
                 if (!($rel instanceof RelationshipInterface)) {
+                    // Set the relationship's name
                     $rel['name'] = $name;
+
+                    // If we've got data, try to turn it into specific resources using the datasource
+                    if (array_key_exists('data', $rel) && $rel['data'] !== null) {
+
+                        // Check to see if it's a collection
+                        $keys = array_keys($rel['data']);
+                        $isCollection = true;
+                        for($i = 0, $c = count($keys); $i < $c; $i++) {
+                            if (!is_int($keys[$i])) {
+                                $isCollection = false;
+                                break;
+                            }
+                        }
+
+                        if (!$isCollection) $rel['data'] = [$rel['data']];
+                        foreach ($rel['data'] as $k => $r) {
+                            $rel['data'][$k] = $this->datasource->inflateRelated($r);
+                        }
+                        if (!$isCollection) $rel['data'] = $rel['data'][0];
+                    }
+
+                    // Now create a valid relationship object
                     $rel = $this->getFactory()->newRelationship($rel);
                 }
 
@@ -246,6 +287,7 @@ abstract class AbstractResource implements ResourceInterface {
     public function setId($id) {
         if ($this->id !== null && $id != $this->id) throw new DuplicateIdException("This resource already has an id. You cannot set a new ID for it.");
         $this->id = $id;
+        $this->validateReadOnly('id', $id == $this->getId());
         return $this;
     }
 
@@ -262,6 +304,40 @@ abstract class AbstractResource implements ResourceInterface {
      * @return string $id
      */
     public function getId() { return $this->id; }
+
+
+    /**
+     * validateReadOnly -- Set an error if an attempt has been made to update a readonly field
+     *
+     * Since some values are difficult to check equality on (like DateTimes, for example), this function accepts a simple boolean `$changed`
+     * flag to indicate whether or not there was an attempt to change the field. You'll usually 
+     *
+     * @param string $field The name of the field for which to set an error
+     * @param bool $changed Whether or not the field has changed
+     * @return bool Whether or not the value should be changed
+     */
+    public function validateReadOnly($field, $changed) {
+        if (!is_bool($changed)) throw new \RuntimeException(
+            "Programmer: You must pass a valid expression that evaluates to a boolean 'true' or 'false' for the ".
+            "second argument of this method. For example, `\$this->validateReadOnly('myField', \$newVal != \$this->getMyField());`."
+        );
+
+        // If we're honoring readonly fields do the validation. (Otherwise, skip)
+        if ($this->honorReadOnly) {
+            if ($changed) {
+                $this->setError($field, 'readonly', $this->getFactory()->newError([
+                    "status" => 400,
+                    "title" => "`$field` is read-only",
+                    "detail" => "Field `$field` is a read-only field and can't be updated."
+                ]));
+            } else {
+                $this->clearError($field, 'readonly');
+            }
+            return false;
+        }
+        return true;
+    }
+
 
     /**
      * getCollectionLinkPath

@@ -19,10 +19,17 @@ class Relationship implements RelationshipInterface {
 
         // Set data
         if ($data['data'] === null) $this->data = null;
+        elseif ($data['data'] instanceof DataInterface) $this->data = $data['data'];
         elseif (array_key_exists('id', $data['data'])) $this->data = $this->getFactory()->newResource($data['data'], array_key_exists('type', $data['data']) ? $data['data']['type'] : null);
         else {
             $rc = $this->data = $this->getFactory()->newResourceCollection();
-            foreach($data['data'] as $r) $rc[] = $this->getFactory()->newResource($r, array_key_exists('type', $r) ? $r['type'] : null);
+            foreach($data['data'] as $r) {
+                if ($r instanceof DataInterface) {
+                    $rc[] = $r;
+                } else {
+                    $rc[] = $this->getFactory()->newResource($r, array_key_exists('type', $r) ? $r['type'] : null);
+                }
+            }
         }
         unset($data['data']);
 

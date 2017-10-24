@@ -75,6 +75,17 @@ interface DatasourceInterface {
      * @return static
      */
     public function delete($r);
+
+    /**
+     * inflateRelated -- Turn data for a related resource into an object
+     *
+     * This method is made available to resources so they may attempt to create more specifically typed resources to represent their
+     * relationships. (It will usually be delegated up to a DataContext.)
+     *
+     * @param array $data The data representing the related resource
+     * @return \CFX\JsonApi\ResourceInterface
+     */
+    public function inflateRelated(array $data);
 }
 
 

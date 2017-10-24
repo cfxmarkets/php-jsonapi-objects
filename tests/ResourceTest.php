@@ -1,17 +1,17 @@
 <?php
 
 use \CFX\JsonApi\Test\User;
-use \CFX\JsonApi\Test\Datasource;
+use \CFX\JsonApi\Test\UsersDatasource;
 
 class ResourceTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateEmptyResource() {
-        $datasource = new Datasource();
+        $datasource = new UsersDatasource();
         $t = new User($datasource);
         $this->assertTrue($t instanceof \CFX\JsonApi\ResourceInterface, "Should instantiate a valid User object");
     }
 
-    public function testCanCreateValidResource() {
-        $data = [
+    public function getTestUserData() {
+        return [
             'type' => 'test-users',
             'attributes' => [
                 'name' => 'Jim Chavo',
@@ -38,8 +38,12 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
                 ],
             ],
         ];
+    }
 
-        $datasource = new Datasource();
+    public function testCanCreateValidResource() {
+        $data = $this->getTestUserData();
+
+        $datasource = new UsersDatasource();
 
         $t = new \CFX\JsonApi\Test\User($datasource, $data);
 
@@ -53,35 +57,9 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testCanUpdateResourceFromUserInput() {
-        $data = [
-            'type' => 'test-users',
-            'attributes' => [
-                'name' => 'Jim Chavo',
-                'dob' => '12345',
-            ],
-            'relationships' => [
-                'friends' => [
-                    'data' => [
-                        [
-                            'type' => 'test-users',
-                            'id' => '1',
-                        ],
-                        [
-                            'type' => 'test-users',
-                            'id' => '2',
-                        ],
-                    ],
-                ],
-                'boss' => [
-                    'data' => [
-                        'type' => 'test-users',
-                        'id' => '3',
-                    ],
-                ],
-            ],
-        ];
+        $data = $this->getTestUserData();
 
-        $datasource = new Datasource();
+        $datasource = new UsersDatasource();
 
         $t = new \CFX\JsonApi\Test\User($datasource, $data);
 
@@ -133,11 +111,11 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function testThrowsExceptionOnBadData() {
         try {
-            new \CFX\JsonApi\Test\User(new \CFX\JsonApi\Test\Datasource(), [ 'id' => '12345', 'type' => 'test-users', 'invalid' => 'extra!!!' ]);
+            new \CFX\JsonApi\Test\User(new UsersDatasource(), [ 'id' => '12345', 'type' => 'test-users', 'invalid' => 'extra!!!' ]);
             $this->fail("Should have thrown an exception");
         } catch(\CFX\JsonApi\MalformedDataException $e) {
             $this->assertContains("`invalid`", $e->getMessage());
-            $this->assertEquals("Resource (`test-users`)", $e->getOffender());
+            $this->assertEquals("Resource (`test-users`)", $e->getOffenders()[0]);
             $this->assertEquals(['invalid'=>'extra!!!'], $e->getOffendingData());
         }
     }
@@ -154,7 +132,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $datasource = new Datasource();
+        $datasource = new UsersDatasource();
 
         try {
             $t = new \CFX\JsonApi\Test\User($datasource, $data);
@@ -195,7 +173,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             ],
         ];
 
-        $datasource = new Datasource();
+        $datasource = new UsersDatasource();
 
         try {
             $t = new \CFX\JsonApi\Test\User($datasource, $data);
@@ -207,35 +185,9 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
      */
 
     public function testSerializesCorrectly() {
-        $data = [
-            'type' => 'test-users',
-            'attributes' => [
-                'name' => 'Jim Chavo',
-                'dob' => '12345',
-            ],
-            'relationships' => [
-                'friends' => [
-                    'data' => [
-                        [
-                            'type' => 'test-users',
-                            'id' => '1',
-                        ],
-                        [
-                            'type' => 'test-users',
-                            'id' => '2',
-                        ],
-                    ],
-                ],
-                'boss' => [
-                    'data' => [
-                        'type' => 'test-users',
-                        'id' => '3',
-                    ],
-                ],
-            ],
-        ];
+        $data = $this->getTestUserData();
 
-        $datasource = new Datasource();
+        $datasource = new UsersDatasource();
 
         $t = new \CFX\JsonApi\Test\User($datasource, $data);
 
@@ -245,8 +197,61 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             'attributes' => $data['attributes'],
             'relationships' => $data['relationships'],
         ];
+        $data['attributes']['readonly'] = 'default value';
 
         $this->assertEquals(json_encode($data), json_encode($t), "Should have serialized back to the original input structure");
+    }
+
+    public function testCanSetDefaultReadonlyData() {
+        $datasource = new UsersDatasource();
+        $t = new \CFX\JsonApi\Test\User($datasource);
+
+        $this->assertEquals('default value', $t->getReadOnly());
+    }
+
+    public function testCanSetReadOnlyDataFromDataSource() {
+        $datasource = new UsersDatasource();
+        $data = $this->getTestUserData();
+        $data['attributes']['readonly'] = 'NOT default';
+        $datasource->setTestData('get-id=1', $data);
+        $t = $datasource->get('id=1');
+
+        $this->assertEquals('NOT default', $t->getReadOnly());
+    }
+
+    public function testCantSetReadOnlyDataWithSetMethod() {
+        $datasource = new UsersDatasource();
+        $t = new \CFX\JsonApi\Test\User($datasource);
+
+        $this->assertEquals('default value', $t->getReadOnly());
+
+        $t->setReadOnly('new val');
+        $this->assertEquals('default value', $t->getReadOnly());
+
+        $e = $t->getErrors('readonly');
+        $this->assertEquals(1, count($e));
+        $this->assertContains('readonly', array_keys($e));
+        $this->assertContains('read-only', $e['readonly']->getDetail());
+    }
+
+    public function testCantSetReadOnlyDataWithUpdateFromData() {
+        $datasource = new UsersDatasource();
+        $t = new \CFX\JsonApi\Test\User($datasource);
+
+        $this->assertEquals('default value', $t->getReadOnly());
+
+        $t->updateFromData([
+            'attributes' => [
+                'readonly' => 'new val'
+            ]
+        ]);
+
+        $this->assertEquals('default value', $t->getReadOnly());
+
+        $e = $t->getErrors('readonly');
+        $this->assertEquals(1, count($e));
+        $this->assertContains('readonly', array_keys($e));
+        $this->assertContains('read-only', $e['readonly']->getDetail());
     }
 }
 
