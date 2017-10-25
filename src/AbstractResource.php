@@ -420,7 +420,7 @@ abstract class AbstractResource implements ResourceInterface {
         }
         if (count($this->relationships) > 0) {
             $data['relationships'] = [];
-            foreach($this->relationships as $r) $data['relationships'][$r->getName()] = $r;
+            foreach($this->relationships as $r) $data['relationships'][$r->getName()] = $this->getFactory()->resourceIdentifierFromResource($r);
         }
         return $data;
     }
