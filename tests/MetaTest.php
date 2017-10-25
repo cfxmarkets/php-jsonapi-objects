@@ -1,11 +1,11 @@
 <?php
 
-use \KS\JsonApi\Meta;
+use \CFX\JsonApi\Meta;
 
 class MetaTest extends \PHPUnit\Framework\TestCase {
     public function testInstantiatesCorrectly() {
         $m = new Meta();
-        $this->assertTrue($m instanceof \KS\JsonApi\MetaInterface);
+        $this->assertTrue($m instanceof \CFX\JsonApi\MetaInterface);
 
         $m = new Meta([
             'test-object' => [
@@ -18,7 +18,7 @@ class MetaTest extends \PHPUnit\Framework\TestCase {
             ],
             'test-prop' => 'prop',
         ]);
-        $this->assertTrue($m instanceof \KS\JsonApi\MetaInterface);
+        $this->assertTrue($m instanceof \CFX\JsonApi\MetaInterface);
     }
 
     public function testInterface() {
@@ -31,7 +31,7 @@ class MetaTest extends \PHPUnit\Framework\TestCase {
             'item3',
         ];
 
-        $this->assertTrue($m['test-object'] instanceof \KS\JsonApi\MetaInterface);
+        $this->assertTrue($m['test-object'] instanceof \CFX\JsonApi\MetaInterface);
         $this->assertEquals('prop1', $m['test-value']);
         $this->assertEquals('item2', $m['test-array'][1]);
     }

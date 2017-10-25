@@ -1,9 +1,9 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 abstract class IndexedCollection extends Collection implements IndexedCollectionInterface  {
     public function offsetSet($offset, $value) {
-        if ($value !== null && !($value instanceof NamedMemberInterface)) throw new \InvalidArgumentException("All members of IndexedCollections must implement the \KS\JsonApi\NamedMemberInterface");
+        if ($value !== null && !($value instanceof NamedMemberInterface)) throw new \InvalidArgumentException("All members of IndexedCollections must implement the \CFX\JsonApi\NamedMemberInterface");
 
         // If value is not null and has a name...
         if ($value !== null && $value->getMemberName()) {

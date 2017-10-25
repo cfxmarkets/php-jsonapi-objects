@@ -1,5 +1,24 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
+
+/**
+ * OffenderExceptionTrait -- a trait that adds the ability to set, add, and retrieve
+ * the names of fields that have caused the exception.
+ */
+trait OffenderExceptionTrait {
+    protected $offenders = [];
+    public function setOffenders(array $offenders) {
+        $this->offenders = $offenders;
+        return $this;
+    }
+    public function addOffender($offender) {
+        $this->offenders[] = $offender;
+        return $this;
+    }
+    public function getOffenders() {
+        return $this->offenders;
+    }
+}
 
 class JsonApiException extends \RuntimeException { }
 
@@ -16,17 +35,9 @@ class DuplicateIdException extends JsonApiException { }
  * more useful error messages in various contexts.
  */
 class MalformedDataException extends JsonApiException {
-    protected $offender;
+    use OffenderExceptionTrait;
+
     protected $offendingData;
-
-    public function setOffender($name) {
-        $this->offender = $name;
-        return $this;
-    }
-
-    public function getOffender() {
-        return $this->offender;
-    }
 
     public function setOffendingData(array $data) {
         $this->offendingData = $data;
@@ -38,10 +49,42 @@ class MalformedDataException extends JsonApiException {
     }
 }
 
-class UninitializedRelationshipException extends JsonApiException { }
-class UnknownAttributeException extends JsonApiException { }
-class UnknownRelationshipException extends JsonApiException { }
-class UnknownResourceTypeException extends JsonApiException { }
+/**
+ * BadInputException
+ * Exception specifying that the input data provided is malformed
+ */
+class BadInputException extends \InvalidArgumentException {
+    protected $inputErrors = [];
+    public function getInputErrors() { return $this->inputErrors; }
+    public function setInputErrors($errors) {
+        if (!is_array($errors)) throw new \RuntimeException("Errors passed to `BadInputException::setInputErrors` must be an array of `ErrorInterface` objects.");
+        foreach ($errors as $e) {
+            if (!($e instanceof ErrorInterface)) throw new \RuntimeException("Errors passed to `BadInputException::setInputErrors` must be an array of `\CFX\JsonApi\ErrorInterface` objects.");
+        }
+        $this->inputErrors = $errors;
+        return $this;
+    }
+}
 
-class UnserializableObjectStateException extends JsonApiException { }
+
+
+/**
+ * UninitializedResourceException
+ * The requested functionality requires an initialized resource, but this resource has not been initialized yet.
+ */
+class UninitializedResourceException extends JsonApiException {
+    use OffenderExceptionTrait;
+}
+class UninitializedRelationshipException extends JsonApiException {
+    use OffenderExceptionTrait;
+}
+class UnknownAttributeException extends JsonApiException {
+    use OffenderExceptionTrait;
+}
+class UnknownRelationshipException extends JsonApiException {
+    use OffenderExceptionTrait;
+}
+class UnserializableObjectStateException extends JsonApiException {
+    use OffenderExceptionTrait;
+}
 

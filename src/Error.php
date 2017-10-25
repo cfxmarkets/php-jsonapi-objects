@@ -1,8 +1,7 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class Error implements ErrorInterface {
-    protected $f;
     protected $fields = ['id','status','code','title','detail','source','links','meta'];
 
     protected $id;
@@ -14,9 +13,7 @@ class Error implements ErrorInterface {
     protected $source;
     protected $meta;
 
-    public function __construct(FactoryInterface $f, $props) {
-        $this->f = $f;
-
+    public function __construct(array $props) {
         if (!array_key_exists('status', $props)) throw new \InvalidArgumentException("You must include a `status` key in your initial properties array");
         if (!array_key_exists('title', $props)) throw new \InvalidArgumentException("You must include a `title` key in your initial properties array");
 
@@ -44,7 +41,7 @@ class Error implements ErrorInterface {
 
         if (count($invalidData) > 0) {
             $e = new MalformedDataException("Unrecognized properties: `".implode('`, `', array_keys($invalidData))."`");
-            $e->setOffender("Error (`$this->title`)");
+            $e->addOffender("Error (`$this->title`)");
             $e->setOffendingData($invalidData);
             throw $e;
         }

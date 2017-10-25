@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 interface NamedMemberInterface extends \JsonSerializable {
     function getMemberName();

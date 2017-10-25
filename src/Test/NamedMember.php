@@ -1,7 +1,7 @@
 <?php
-namespace KS\JsonApi\Test;
+namespace CFX\JsonApi\Test;
 
-class NamedMember implements \KS\JsonApi\NamedMemberInterface {
+class NamedMember implements \CFX\JsonApi\NamedMemberInterface {
     protected $memberName;
     protected $data;
 

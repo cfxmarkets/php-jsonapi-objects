@@ -1,11 +1,10 @@
 <?php
 
-use \KS\JsonApi\Error;
+use \CFX\JsonApi\Error;
 
 class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
     public function testErrors() {
-        $f = new \KS\JsonApi\Test\Factory();
-        $t = new \KS\JsonApi\Test\TestErrorHandler();
+        $t = new \CFX\JsonApi\Test\TestErrorHandler();
 
         $this->assertFalse($t->hasErrors());
         $this->assertFalse($t->hasErrors('testField'));
@@ -14,7 +13,7 @@ class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals([], $t->getErrors());
         $this->assertEquals([], $t->getErrors('testField'));
 
-        $t->produceError('testField', null, $f->newJsonApiError(['title' => 'Bad Email', 'detail' => 'Email is bad', 'status' => 400]));
+        $t->produceError('testField', null, new Error(['title' => 'Bad Email', 'detail' => 'Email is bad', 'status' => 400]));
         $this->assertTrue($t->hasErrors());
         $this->assertTrue($t->hasErrors('testField'));
         $this->assertFalse($t->hasErrors('testField2'));
@@ -23,7 +22,7 @@ class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
         $this->assertContains('Email is bad', json_encode($t->getErrors()));
         $this->assertContains('Email is bad', json_encode($t->getErrors('testField')));
 
-        $t->produceError('testField', 'email-required', $f->newJsonApiError(['title' => "Email Required", "detail" => 'Email is required', "status" => 400 ]));
+        $t->produceError('testField', 'email-required', new Error(['title' => "Email Required", "detail" => 'Email is required', "status" => 400 ]));
         $this->assertTrue($t->hasErrors());
         $this->assertTrue($t->hasErrors('testField'));
         $this->assertFalse($t->hasErrors('testField2'));
@@ -33,7 +32,7 @@ class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
         $this->assertContains('Email is required', json_encode($t->getErrors()));
         $this->assertContains('Email is required', json_encode($t->getErrors('testField')));
 
-        $t->produceError('testField', 'email-required', $f->newJsonApiError(['title' => "Email Seriously REQUIRED", 'detail' => 'Email is seriously required', 'status' => 400 ]));
+        $t->produceError('testField', 'email-required', new Error(['title' => "Email Seriously REQUIRED", 'detail' => 'Email is seriously required', 'status' => 400 ]));
         $this->assertTrue($t->hasErrors());
         $this->assertTrue($t->hasErrors('testField'));
         $this->assertFalse($t->hasErrors('testField2'));
@@ -51,7 +50,7 @@ class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
         $this->assertContains('Email is bad', json_encode($t->getErrors()));
         $this->assertContains('Email is bad', json_encode($t->getErrors('testField')));
 
-        $t->produceError('testField2', 'name-required', $f->newJsonApiError([ 'title' => 'Name Required', 'detail' => 'Name is required', 'status' => 400 ]));
+        $t->produceError('testField2', 'name-required', new Error([ 'title' => 'Name Required', 'detail' => 'Name is required', 'status' => 400 ]));
         $this->assertTrue($t->hasErrors());
         $this->assertTrue($t->hasErrors('testField'));
         $this->assertTrue($t->hasErrors('testField2'));
@@ -70,12 +69,12 @@ class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testThrowsExceptionOnNonJsonApiError() {
-        $t = new \KS\JsonApi\Test\TestErrorHandler();
+        $t = new \CFX\JsonApi\Test\TestErrorHandler();
         try {
             $t->produceError('testField', null, 'Some message');
             $this->fail("Should have thrown an exception");
         } catch (\Exception $e) {
-            $this->assertContains("KS\JsonApi\ErrorInterface", $e->getMessage(), "This is the expected behavior");
+            $this->assertContains("CFX\JsonApi\ErrorInterface", $e->getMessage(), "This is the expected behavior");
         }
     }
 }

@@ -1,11 +1,11 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 class Document implements DocumentInterface {
     protected $version = "1.0";
 
+    protected $factory;
     protected $baseUrl;
-    protected $f;
     protected $data;
     protected $errors;
     protected $links;
@@ -13,12 +13,11 @@ class Document implements DocumentInterface {
     protected $included;
     protected $jsonapi;
 
-    public function __construct(FactoryInterface $f, $data=null) {
-        $this->f = $f;
+    public function __construct($data=null) {
         if ($data) {
             if (array_key_exists('errors', $data)) {
                 foreach($data['errors'] as $error) {
-                    if (!($error instanceof Error)) $error = $this->f->newJsonApiError($error);
+                    if (!($error instanceof Error)) $error = $this->getFactory()->newError($error);
                     $this->addError($error);
                 }
                 unset($data['errors']);
@@ -26,16 +25,16 @@ class Document implements DocumentInterface {
 
             if (array_key_exists('data', $data)) {
                 if ($data['data'] === null) $this->data = null;
-                elseif ($data['data'] instanceof BaseResourceInterface || $data['data'] instanceof ResourceCollectionInterface) $this->data = $data['data'];
+                elseif ($data['data'] instanceof ResourceInterface || $data['data'] instanceof ResourceCollectionInterface) $this->data = $data['data'];
                 elseif (is_array($data['data'])) {
                     $isCollection = is_numeric(implode('', array_keys($data['data'])));
                     if ($isCollection) {
-                        $rc = $this->f->newJsonApiResourceCollection();
-                        foreach ($data['data'] as $r) $rc[] = $this->f->newJsonApiResource($r, $r['type']);
+                        $rc = $this->getFactory()->newResourceCollection();
+                        foreach ($data['data'] as $r) $rc[] = $this->getFactory()->newResource($r, $r['type']);
                         $this->data = $rc;
                     } else {
                         if (!array_key_exists('type', $data['data'])) throw new \InvalidArgumentException("If you provide a resource via the `data` key, you MUST specify its type via the `data::type` key (e.g., [ 'data' => [ 'type' => 'my-resources', 'attributes' => [ ... ] ] ]).");
-                        $this->data = $this->f->newJsonApiResource($data['data'], $data['data']['type']);
+                        $this->data = $this->getFactory()->newResource($data['data'], $data['data']['type']);
                     }
                 } else {
                     throw new \InvalidArgumentException("Malformed `data` object in initial data array.");
@@ -45,7 +44,7 @@ class Document implements DocumentInterface {
 
             if (array_key_exists('links', $data)) {
                 if (is_array($data['links'])) {
-                    $links = $this->f->newJsonApiLinksCollection();
+                    $links = $this->getFactory()->newLinksCollection();
                     foreach($data['links'] as $name => $link) {
                         if (!($link instanceof LinkInterface)) {
                             if (is_array($link)) {
@@ -56,7 +55,7 @@ class Document implements DocumentInterface {
                                     'name' => $name,
                                 ];
                             }
-                            $links[$name] = $this->f->newJsonApiLink($link);
+                            $links[$name] = $this->getFactory()->newLink($link);
                         } else {
                             $links[$link->getMemberName()] = $link;
                         }
@@ -72,14 +71,14 @@ class Document implements DocumentInterface {
 
             if (array_key_exists('meta', $data)) {
                 if ($data['meta'] instanceof Meta) $this->meta = $data['meta'];
-                else $this->meta = $this->f->newJsonApiMeta($data['meta']);
+                else $this->meta = $this->getFactory()->newMeta($data['meta']);
                 unset($data['meta']);
             }
 
             if (array_key_exists('included', $data)) {
                 if (!is_array($data['included'])) throw new \InvalidArgumentException("If you pass an array of included resources, it must be an array, not an object or string or null or anything else.");
-                $this->included = $this->f->newJsonApiResourceCollection();
-                foreach($data['included'] as $r) $this->included[] = $this->f->newJsonApiResource($r, $r['type']);
+                $this->included = $this->getFactory()->newResourceCollection();
+                foreach($data['included'] as $r) $this->included[] = $this->getFactory()->newResource($r, $r['type']);
                 unset($data['included']);
             }
 
@@ -90,7 +89,7 @@ class Document implements DocumentInterface {
 
             if (count($data) > 0) {
                 $e = new MalformedDataException("You have unrecognized data in your JsonApi document. Offending keys are: `".implode('`, `', array_keys($data))."`.");
-                $e->setOffender("Document");
+                $e->addOffender("Document");
                 $e->setOffendingData($data);
                 throw $e;
             }
@@ -102,8 +101,8 @@ class Document implements DocumentInterface {
 
     public function getBaseUrl() { return $this->baseUrl; }
     public function getData() { return $this->data; }
-    public function getErrors() { return $this->errors ?: $this->f->newJsonApiErrorsCollection(); }
-    public function getLinks() { return $this->links ?: $this->f->newJsonApiLinksCollection(); }
+    public function getErrors() { return $this->errors ?: $this->getFactory()->newErrorsCollection(); }
+    public function getLinks() { return $this->links ?: $this->getFactory()->newLinksCollection(); }
     public function getLink($name) {
         if ($this->links) return $this->links[$name];
         else return null;
@@ -118,19 +117,19 @@ class Document implements DocumentInterface {
     }
 
     public function setData($data) {
-        if (!($data instanceof BaseResourceInterface) && !($data instanceof ResourceCollectionInterface)) throw new \InvalidArgumentException("Data must be either a BaseResource or a ResourceCollection");
+        if (!($data instanceof ResourceInterface) && !($data instanceof ResourceCollectionInterface)) throw new \InvalidArgumentException("Data must be either a Resource or a ResourceCollection");
         $this->data = $data;
         return $this;
     }
 
     public function addError(ErrorInterface $e) {
-        if (!$this->errors) $this->errors = $this->f->newJsonApiErrorsCollection();
+        if (!$this->errors) $this->errors = $this->getFactory()->newErrorsCollection();
         $this->errors[] = $e;
         return $this;
     }
 
     public function addLink(LinkInterface $l) {
-        if (!$this->links) $this->links = $this->f->newJsonApiLinksCollection();
+        if (!$this->links) $this->links = $this->getFactory()->newLinksCollection();
         $this->links[$l->getMemberName()] = $l;
         return $this;
     }
@@ -150,10 +149,10 @@ class Document implements DocumentInterface {
         else {
             $data['data'] = $this->data;
             if ((!$this->links || !$this->getLink('self')) && $this->data) {
-                if ($this->data instanceof BaseResourceInterface) {
-                    $this->addLink($this->f->newJsonApiLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data->getSelfLinkPath() ]));
+                if ($this->data instanceof ResourceInterface) {
+                    $this->addLink($this->getFactory()->newLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data->getSelfLinkPath() ]));
                 } elseif ($this->data instanceof ResourceCollectionInterface && count($this->data)) {
-                    $this->addLink($this->f->newJsonApiLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data[0]->getCollectionLinkPath() ]));
+                    $this->addLink($this->getFactory()->newLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data[0]->getCollectionLinkPath() ]));
                 }
             }
         }
@@ -164,6 +163,13 @@ class Document implements DocumentInterface {
         $data['jsonapi'] = $this->jsonapi;
 
         return $data;
+    }
+
+    public function getFactory() {
+        if (!$this->factory) {
+            $this->factory = new Factory();
+        }
+        return $this->factory;
     }
 }
 

@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 interface ErrorInterface extends \KS\ErrorInterface, \JsonSerializable {
     function getId();

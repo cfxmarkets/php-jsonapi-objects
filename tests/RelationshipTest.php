@@ -7,11 +7,11 @@ class RelationshipTest extends \PHPUnit\Framework\TestCase {
 
     public function testRelationshipRejectsBadData() {
         try {
-            new \KS\JsonApi\Relationship(new \KS\JsonApi\Test\Factory(), [ 'name' => 'test', 'invalid' => 'extra!!' ]);
+            new \CFX\JsonApi\Relationship([ 'name' => 'test', 'invalid' => 'extra!!' ]);
             $this->fail("Should have thrown exception");
-        } catch (\KS\JsonApi\MalformedDataException $e) {
+        } catch (\CFX\JsonApi\MalformedDataException $e) {
             $this->assertContains("`invalid`", $e->getMessage());
-            $this->assertEquals("Relationship (`test`)", $e->getOffender());
+            $this->assertEquals("Relationship (`test`)", $e->getOffenders()[0]);
             $this->assertEquals(['invalid'=>'extra!!'], $e->getOffendingData());
         }
     }

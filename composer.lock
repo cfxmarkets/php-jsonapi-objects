@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "cc0d057cc60455f99cb1112711c3f0c2",
+    "content-hash": "84f33bd0c4e5f5a42a6a3e2675e9e84f",
     "packages": [
         {
             "name": "kael-shipman/php-std-traits",
-            "version": "v3.2.0",
+            "version": "v3.2.1",
             "source": {
                 "type": "git",
                 "url": "git@github.com:cfxmarkets/php-std-traits.git",
-                "reference": "a1183972b0291cb22907e28bee4bf82da51b6fb3"
+                "reference": "996327e11ffbae9ac06b918d9a78e109d14a6a00"
             },
             "require": {
                 "php": ">=5.4.0 < 7"
@@ -49,7 +49,7 @@
             "keywords": [
                 "traits"
             ],
-            "time": "2017-09-15T22:48:30+00:00"
+            "time": "2017-10-16T04:03:38+00:00"
         }
     ],
     "packages-dev": [
@@ -1023,7 +1023,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.4 <7"
+        "php": ">=5.4"
     },
     "platform-dev": []
 }

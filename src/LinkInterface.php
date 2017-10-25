@@ -1,5 +1,5 @@
 <?php
-namespace KS\JsonApi;
+namespace CFX\JsonApi;
 
 interface LinkInterface extends NamedMemberInterface {
     function getHref();
