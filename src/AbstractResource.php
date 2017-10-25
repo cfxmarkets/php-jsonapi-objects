@@ -33,8 +33,8 @@ abstract class AbstractResource implements ResourceInterface {
      * have been initialized. The `AbstractResource` class doesn't make any accommodations for the implementation of this
      * logic, but understands that such functionality may be desireable.
      */
-    private $initialized = false;
-    private $initializedRelationships = [];
+    protected $initialized = false;
+    protected $initializedRelationships = [];
 
 
     /**
@@ -150,8 +150,9 @@ abstract class AbstractResource implements ResourceInterface {
      * @param ResourceInterface
      * @return static
      */
-    public static function fromResource(ResourceInterface $src) {
-        $targ = new static($this->datasource);
+    public static function fromResource(ResourceInterface $src, DatasourceInterface $datasource=null) {
+        if (!$datasource) $datasource = $src->datasource;
+        $targ = new static($datasource);
 
         $data = [
             'id' => $src->id,
@@ -161,13 +162,13 @@ abstract class AbstractResource implements ResourceInterface {
         ];
 
         foreach($targ->attributes as $name => $v) {
-            if (array_key_exists($name, $src->attributes)) $targ['attributes'][$name] = $v;
+            if (array_key_exists($name, $src->attributes)) $data['attributes'][$name] = $v;
         }
         foreach($targ->relationships as $name => $v) {
-            if (array_key_exists($name, $src->relationships)) $targ['relationships'][$name] = $v;
+            if (array_key_exists($name, $src->relationships)) $data['relationships'][$name] = $v;
         }
 
-        $targ->updateFromData($targ);
+        $targ->updateFromData($data);
 
         return $targ;
     }
@@ -287,7 +288,6 @@ abstract class AbstractResource implements ResourceInterface {
     public function setId($id) {
         if ($this->id !== null && $id != $this->id) throw new DuplicateIdException("This resource already has an id. You cannot set a new ID for it.");
         $this->id = $id;
-        $this->validateReadOnly('id', $id == $this->getId());
         return $this;
     }
 
@@ -365,10 +365,16 @@ abstract class AbstractResource implements ResourceInterface {
      * @return array
      */
     public function getChanges() {
-        $changes = ['type' => $this->getResourceType()];
+        $changes = [
+            'type' => $this->getResourceType(),
+            'attributes' => [],
+            'relationships' => $this->changedRelationships,
+        ];
         if ($this->getId()) $changes['id'] = $this->getId();
-        $changes['attributes'] = $this->changedAttributes;
-        $changes['relationships'] = $this->changedRelationships;
+
+        foreach (array_keys($this->changedAttributes) as $attr) {
+            $changes['attributes'][$attr] = $this->serializeAttribute($attr);
+        }
 
         return $changes;
     }

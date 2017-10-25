@@ -41,7 +41,7 @@ class Error implements ErrorInterface {
 
         if (count($invalidData) > 0) {
             $e = new MalformedDataException("Unrecognized properties: `".implode('`, `', array_keys($invalidData))."`");
-            $e->setOffender("Error (`$this->title`)");
+            $e->addOffender("Error (`$this->title`)");
             $e->setOffendingData($invalidData);
             throw $e;
         }

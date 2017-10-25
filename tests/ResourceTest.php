@@ -1,7 +1,5 @@
 <?php
-
-use \CFX\JsonApi\Test\User;
-use \CFX\JsonApi\Test\UsersDatasource;
+namespace CFX\JsonApi\Test;
 
 class ResourceTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateEmptyResource() {
@@ -12,6 +10,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function getTestUserData() {
         return [
+            'id' => '1',
             'type' => 'test-users',
             'attributes' => [
                 'name' => 'Jim Chavo',
@@ -22,18 +21,18 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
                     'data' => [
                         [
                             'type' => 'test-users',
-                            'id' => '1',
+                            'id' => '2',
                         ],
                         [
                             'type' => 'test-users',
-                            'id' => '2',
+                            'id' => '3',
                         ],
                     ],
                 ],
                 'boss' => [
                     'data' => [
                         'type' => 'test-users',
-                        'id' => '3',
+                        'id' => '4',
                     ],
                 ],
             ],
@@ -66,8 +65,8 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals('Jim Chavo', $t->getName(), "Name should be Jim Chavo");
         $this->assertEquals('12345', $t->getDob(), "DOB should be 12345");
         $this->assertEquals(2, count($t->getFriends()), "Should have 2 friends");
-        $this->assertEquals('1', $t->getFriends()[0]->getId(), "First friend should be id 1");
-        $this->assertEquals('3', $t->getBoss()->getId(), "Boss should be id 3");
+        $this->assertEquals('2', $t->getFriends()[0]->getId(), "First friend should be id 2");
+        $this->assertEquals('4', $t->getBoss()->getId(), "Boss should be id 4");
 
         try {
             $t->updateFromData([
@@ -94,7 +93,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
                     'data' => [
                         [
                             'type' => 'test-users',
-                            'id' => '2',
+                            'id' => '3',
                         ]
                     ]
                 ],
@@ -105,7 +104,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         ]);
 
         $this->assertEquals(1, count($t->getFriends()), "Should have 1 friend");
-        $this->assertEquals('2', $t->getFriends()[0]->getId(), "Friend should be id 2");
+        $this->assertEquals('3', $t->getFriends()[0]->getId(), "Friend should be id 3");
         $this->assertNull($t->getBoss(), "Boss should be null");
     }
 
@@ -118,6 +117,18 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
             $this->assertEquals("Resource (`test-users`)", $e->getOffenders()[0]);
             $this->assertEquals(['invalid'=>'extra!!!'], $e->getOffendingData());
         }
+    }
+
+    public function testCanInflateFromDatasource() {
+        $users = new UsersDatasource();
+
+        $user = $users->create();
+        $this->assertFalse($user->getInitialized());
+
+        $users->setTestData('get-id=1', $this->getTestUserData());
+        $user = $users->get('id=1');
+        $this->assertInstanceOf("\\CFX\\JsonApi\\Test\\User", $user);
+        $this->assertTrue($user->getInitialized());
     }
 
     /*
@@ -193,13 +204,17 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $data = [
             'type' => $data['type'],
-            'id' => null,
+            'id' => "1",
             'attributes' => $data['attributes'],
             'relationships' => $data['relationships'],
         ];
         $data['attributes']['readonly'] = 'default value';
 
         $this->assertEquals(json_encode($data), json_encode($t), "Should have serialized back to the original input structure");
+    }
+
+    public function testShouldOptionallySerializeAttributesOnSerialize() {
+        $this->markTestIncomplete();
     }
 
     public function testCanSetDefaultReadonlyData() {
@@ -252,6 +267,71 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals(1, count($e));
         $this->assertContains('readonly', array_keys($e));
         $this->assertContains('read-only', $e['readonly']->getDetail());
+    }
+
+    public function testCanConvertFromOneTypeToAnother() {
+        $users = new UsersDatasource();
+        $data = $this->getTestUserData();
+        unset($data['id']);
+        $t = new User($users, $data);
+
+        $t2 = PrivateUser::fromResource($t);
+
+        $this->assertInstanceOf("\\CFX\\JsonApi\\Test\PrivateUser", $t2);
+        $this->assertEquals('default value', $t2->getReadOnly());
+        $t2->setReadOnly("new value");
+        $this->assertEquals("new value", $t2->getReadOnly());
+        $this->assertEquals(0, $t2->numErrors());
+    }
+
+    public function testGetChangesReturnsValidJsonApiResourceRepresentation() {
+        $users = new UsersDatasource();
+        $users->setTestData('get-id=1', $this->getTestUserData());
+        $user = $users->get('id=1');
+
+        $changes = $user->getChanges();
+        $this->assertEquals('1', $changes['id']);
+        $this->assertEquals('test-users', $changes['type']);
+        $this->assertContains('attributes', array_keys($changes));
+        $this->assertContains('relationships', array_keys($changes));
+        $this->assertEquals(4, count(array_keys($changes)));
+    }
+
+    public function testGetChangesSerializesAttributes() {
+        $this->markTestIncomplete();
+    }
+
+    public function testSetsChangesForAttributesAndRelationships() {
+        $users = new UsersDatasource();
+        $user = $users->create();
+
+        $this->assertEquals([ 'readonly' => 'default value' ], $user->getChanges()['attributes']);
+        $this->assertEquals([], $user->getChanges()['relationships']);
+
+        $user->setName("Test Testerson");
+
+        $users->setTestData('get-id=1', $this->getTestUserData());
+        $boss = $users->get('id=1');
+        $user->setBoss($boss);
+
+        $this->assertEquals(['readonly' => 'default value', 'name' => 'Test Testerson'], $user->getChanges()['attributes']);
+        $this->assertEquals(['boss'], array_keys($user->getChanges()['relationships']));
+        $this->assertSame($boss, $user->getChanges()['relationships']['boss']->getData());
+    }
+
+    public function testCanGetCollectionLinkPath() {
+        $users = new UsersDatasource();
+        $user = $users->create();
+        $this->assertEquals("/test-users", $user->getCollectionLinkPath());
+    }
+
+    public function testCanGetSelfLinkPath() {
+        $users = new UsersDatasource();
+        $user = $users->create();
+        $this->assertEquals("/test-users", $user->getSelfLinkPath());
+
+        $user->setId('12345');
+        $this->assertEquals("/test-users/12345", $user->getSelfLinkPath());
     }
 }
 

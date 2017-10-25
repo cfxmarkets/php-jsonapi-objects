@@ -1,17 +1,15 @@
 <?php
-
-use \CFX\JsonApi as japi;
-use \CFX\JsonApi\Test\TestData;
+namespace CFX\JsonApi;
 
 class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
     public function testCorrectlyUnserializesJsonApiDoc() {
         $this->markTestIncomplete();
-        $struct = TestData::get('data');
-        $struct['links'] = TestData::get('links')['links'];
-        $doc = new japi\Document($this->context(), $struct);
+        $struct = Test\TestData::get('data');
+        $struct['links'] = Test\TestData::get('links')['links'];
+        $doc = new Document($struct);
 
-        $this->assertTrue($doc->getData() instanceof japi\ResourceCollection);
-        $this->assertTrue($doc->getData()[0] instanceof japi\ResourceInterface);
+        $this->assertTrue($doc->getData() instanceof ResourceCollection);
+        $this->assertTrue($doc->getData()[0] instanceof ResourceInterface);
 
         for($i = 0; $i < 2; $i++) {
             $this->assertEquals('test1', $doc->getData()[$i]->getResourceType());
@@ -21,36 +19,32 @@ class FullIntegrationTest extends \PHPUnit\Framework\TestCase {
             $this->assertEquals(count($struct['data'][$i]['relationships']), count($doc->getData()[$i]->getRelationships()));
             $this->assertEquals(array_keys($struct['data'][$i]['relationships'])[0], $doc->getData()[$i]->getRelationship('owner')->getName());
             if ($i == 0) {
-                $this->assertTrue($doc->getData()[$i]->getRelationship('owner')->getData() instanceof japi\ResourceInterface);
+                $this->assertTrue($doc->getData()[$i]->getRelationship('owner')->getData() instanceof ResourceInterface);
                 $this->assertEquals($struct['data'][$i]['relationships']['owner']['data']['id'], $doc->getData()[$i]->getRelationship('owner')->getData()->getId());
-                $this->assertTrue($doc->getData()[$i]->getRelationship('inhabitants')->getData() instanceof japi\ResourceCollection);
-                $this->assertTrue($doc->getData()[$i]->getRelationship('inhabitants')->getData()[0] instanceof japi\ResourceInterface);
+                $this->assertTrue($doc->getData()[$i]->getRelationship('inhabitants')->getData() instanceof ResourceCollection);
+                $this->assertTrue($doc->getData()[$i]->getRelationship('inhabitants')->getData()[0] instanceof ResourceInterface);
             } else {
                 $this->assertNull($doc->getData()[$i]->getRelationship('owner')->getData());
                 $this->assertEquals(0, count($doc->getData()[$i]->getRelationship('inhabitants')->getData()));
             }
 
-            $this->assertTrue($doc->getLinks() instanceof japi\LinksCollectionInterface);
+            $this->assertTrue($doc->getLinks() instanceof LinksCollectionInterface);
             $this->assertEquals('/test/link',$doc->getLinks()['self']->getHref());
         }
     }
 
     public function testCorrectlyReserializesJsonApiDoc() {
         $this->markTestIncomplete();
-        $struct = TestData::get('data');
-        $struct['links'] = TestData::get('links')['links'];
+        $struct = Test\TestData::get('data');
+        $struct['links'] = Test\TestData::get('links')['links'];
         $struct['jsonapi'] = [ 'version' => '1.0' ];
-        $doc = new japi\Document($this->context(), $struct);
+        $doc = new Document($struct);
         $this->assertEquals(json_encode($struct), json_encode($doc));
     }
 
     public function testCorrectlyHandlesErrors() {
-        $e = TestData::get('errors');
-        $doc = new japi\Document($this->context(), $e);
+        $e = Test\TestData::get('errors');
+        $doc = new Document($e);
         $this->assertEquals($e['errors'][0]['status'], $doc->getErrors()[0]->getStatus());
     }
-
-
-
-    protected function context() { return new \CFX\JsonApi\Test\Context(); }
 }

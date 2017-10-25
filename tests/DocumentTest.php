@@ -18,14 +18,16 @@ use \CFX\JsonApi\Test\Context;
 
 class DocumentTest extends \PHPUnit\Framework\TestCase {
     public function testCanCreateBlankDoc() {
-        $doc = new Document(new Context());
+        $doc = new Document();
         $this->assertTrue($doc instanceof \CFX\JsonApi\DocumentInterface, "Correct: Shouldn't have thrown an error");
     }
 
     public function testDocumentInterface() {
-        $doc = new Document(new Context());
+        $doc = new Document();
+        $users = new \CFX\JsonApi\Test\UsersDatasource();
+
         $doc->setData(new ResourceCollection([
-            new User(new Context(), [
+            $users->create([
                 'type' => 'test-users',
                 'id' => '1',
                 'attributes' => [
@@ -34,7 +36,9 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
             ]),
         ]));
 
-        $doc->setData(new User(new Context(), [
+        $this->assertTrue($doc->getData() instanceof ResourceCollectionInterface);
+
+        $doc->setData($users->create([
             'type' => 'test-users',
             'id' => '1',
             'attributes' => [
@@ -42,7 +46,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
             ]
         ]));
 
-        $doc->addLink(new Link(new Context(), [
+        $doc->addLink(new Link([
             'name' => 'self',
             'href' => '/test/link',
         ]));
@@ -67,7 +71,7 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
 
         $this->assertEquals(json_encode($struct), json_encode($doc));
 
-        $doc->addError(new Error(new Context(), [
+        $doc->addError(new Error([
             'status' => 400,
             'title' => 'Invalid Data',
             'detail' => 'Malformed entry',
@@ -86,11 +90,11 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
 
     public function testDocumentRejectsMalformedData() {
         try {
-            new \CFX\JsonApi\Document(new Context(), ['something' => 'invalid']);
+            new \CFX\JsonApi\Document(['something' => 'invalid']);
             $this->fail("Should have thrown an exception");
         } catch (\CFX\JsonApi\MalformedDataException $e) {
             $this->assertContains("`something`", $e->getMessage());
-            $this->assertEquals("Document", $e->getOffender());
+            $this->assertEquals("Document", $e->getOffenders()[0]);
             $this->assertEquals(['something'=>'invalid'], $e->getOffendingData());
         }
     }

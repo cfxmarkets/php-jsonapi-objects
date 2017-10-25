@@ -12,14 +12,7 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
         }
 
         try {
-            $e = new Error($this->context());
-            $this->fail("Should have thrown an error");
-        } catch (PHPUnit_Framework_Error $e) {
-            $this->assertTrue(true, "This is the expected behavior");
-        }
-
-        try {
-            $e = new Error($this->context(), []);
+            $e = new Error([]);
             $this->fail("Should have thrown an exception");
         } catch (InvalidArgumentException $e) {
             $this->assertTrue(true, "This is the expected behavior");
@@ -27,7 +20,7 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
     }
 
     public function testErrorShouldCreateValidError() {
-        $e = new Error($this->context(), [
+        $e = new Error([
             'status' => 500,
             'title' => 'Server Error',
             'detail' => 'There was a server error',
@@ -38,7 +31,7 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
 
     public function testErrorShouldValidateStatus() {
         try {
-            $e = new Error($this->context(), [ 'status' => "Five Hundred", 'title' => 'Test title' ]);
+            $e = new Error([ 'status' => "Five Hundred", 'title' => 'Test title' ]);
             $this->fail("Should have thrown an exception");
         } catch (InvalidArgumentException $e) {
             $this->assertContains('`status`', $e->getMessage(), "Error should indicate errors in `status` field");
@@ -59,14 +52,14 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
 
     public function testErrorRequiredValues() {
         try {
-            $e = new Error($this->context(), [ 'status' => 200 ]);
+            $e = new Error([ 'status' => 200 ]);
             $this->fail("Should have thrown an exception");
         } catch (InvalidArgumentException $e) {
             $this->assertContains('`title`', $e->getMessage(), "Error should indicate that title is a required field.");
         }
 
         try {
-            $e = new Error($this->context(), [ 'title' => "This is an error" ]);
+            $e = new Error([ 'title' => "This is an error" ]);
             $this->fail("Should have thrown an exception");
         } catch (InvalidArgumentException $e) {
             $this->assertContains('`status`', $e->getMessage(), "Error should indicate that status is a required field.");
@@ -75,17 +68,17 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
 
     public function testErrorShouldThrowExceptionOnMalformedData() {
         try {
-            new Error($this->context(), ['status' => 400, 'title' => 'some title', 'detail' => 'some detail', 'extra' => 'extra!!!']);
+            new Error(['status' => 400, 'title' => 'some title', 'detail' => 'some detail', 'extra' => 'extra!!!']);
             $this->fail("Should have thrown an exception");
         } catch(\CFX\JsonApi\MalformedDataException $e) {
             $this->assertContains("`extra`", $e->getMessage());
-            $this->assertEquals("Error (`some title`)", $e->getOffender());
+            $this->assertEquals("Error (`some title`)", $e->getOffenders()[0]);
             $this->assertEquals(['extra'=>'extra!!!'], $e->getOffendingData());
         }
     }
 
     public function testErrorShouldSerializeWell() {
-        $e = new Error($this->context(), [
+        $e = new Error([
             'status' => 200,
             'title' => 'All Cool',
         ]);
@@ -93,10 +86,5 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
         $this->assertContains('"status":200', $json, 'Should contain status field');
         $this->assertContains('"title":"All Cool"', $json, 'Should contain title field');
     }
-
-
-
-
-    protected function context() { return new \CFX\JsonApi\Test\Context(); }
 }
 

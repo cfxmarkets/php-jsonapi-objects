@@ -20,6 +20,7 @@ class User extends \CFX\JsonApi\AbstractResource {
         if ($this->validateReadOnly('readonly', $val != $this->getReadOnly())) {
             $this->_setAttribute('readonly', $val);
         }
+        return $this;
     }
 
     public function setFriends(\CFX\JsonApi\ResourceCollectionInterface $r=null) {
@@ -38,6 +39,9 @@ class User extends \CFX\JsonApi\AbstractResource {
     public function getFriendsRelationship() { return $this->relationships['friends']; }
     public function getBossRelationship() { return $this->relationships['boss']; }
 
+    public function getInitialized() {
+        return $this->initialized;
+    }
 }
 
 

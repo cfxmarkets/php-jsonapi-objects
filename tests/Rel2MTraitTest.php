@@ -37,9 +37,5 @@ class Rel2MTraitTest extends \PHPUnit\Framework\TestCase {
     public function testCanRemoveResourceFrom2MRel() {
         $this->markTestIncomplete();
     }
-
-    public function testCanGet2MRel() {
-        $this->markTestIncomplete();
-    }
 }
 

@@ -2,13 +2,12 @@
 namespace CFX\JsonApi;
 
 class Link implements LinkInterface {
-    protected $f;
+    protected $factory;
     protected $name;
     protected $href;
     protected $meta;
 
-    public function __construct(DatasourceInterface $f, $data=null) {
-        $this->f = $f;
+    public function __construct($data=null) {
         if ($data) {
             if (array_key_exists('name', $data)) {
                 if ($data['name'] !== null && !is_string($data['name'])) throw new \InvalidArgumentException("Name must be a string");
@@ -22,7 +21,7 @@ class Link implements LinkInterface {
             }
             if (array_key_exists('meta', $data)) {
                 if ($data['meta'] !== null) {
-                    if (is_array($data['meta'])) $this->meta = $this->f->newJsonApiMeta($data['meta']);
+                    if (is_array($data['meta'])) $this->meta = $this->getFactory()->newMeta($data['meta']);
                     elseif ($data['meta'] instanceof MetaInterface) $this->meta = $data['meta'];
                     else throw new \InvalidArgumentException("Meta must be an array representation of a meta object or an official \\CFX\\JsonApi\\Meta object");
                 }
@@ -31,7 +30,7 @@ class Link implements LinkInterface {
 
             if (count($data) > 0) {
                 $e = new MalformedDataException("You have unrecognized data in your JsonApi Link. Offending keys are: `".implode('`, `', array_keys($data))."`.");
-                $e->setOffender("Link (`$this->name`)");
+                $e->addOffender("Link (`$this->name`)");
                 $e->setOffendingData($data);
                 throw $e;
             }
@@ -57,6 +56,13 @@ class Link implements LinkInterface {
         } else {
             return $this->href;
         }
+    }
+
+    public function getFactory() {
+        if (!$this->factory) {
+            $this->factory = new Factory();
+        }
+        return $this->factory;
     }
 }
 
