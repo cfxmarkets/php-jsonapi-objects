@@ -105,5 +105,24 @@ class ResourceIdentifier implements ResourceIdentifierInterface {
     protected function getFactory() {
         return new Factory();
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function jsonSerialize() {
+        if ($this->getId() === null || $this->getResourceType() === null) {
+            $e = new UnserializableObjectStateException("Can't serialize resource identifier because of missing data");
+            if (!$this->getId()) $e->addOffender('id');
+            if (!$this->getResourceType()) $e->addOffender('type');
+            throw $e;
+        }
+
+        $data = [
+            'id' => $this->getId(),
+            'type' => $this->getResourceType(),
+        ];
+        if ($this->getMeta() !== null) $data['meta'] = $this->getMeta();
+        return $data;
+    }
 }
 

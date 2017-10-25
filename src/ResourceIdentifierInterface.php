@@ -1,7 +1,7 @@
 <?php
 namespace CFX\JsonApi;
 
-interface ResourceIdentifierInterface extends DataInterface {
+interface ResourceIdentifierInterface extends DataInterface, \JsonSerializable {
     /**
      * self-explanatory
      */
