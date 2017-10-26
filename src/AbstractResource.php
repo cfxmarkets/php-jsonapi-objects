@@ -83,7 +83,7 @@ abstract class AbstractResource implements ResourceInterface {
 
         // Set all attributes to null initially, saving default values
         foreach($this->attributes as $attr => $v) {
-            if (is_int($attr)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$attributes = [ 'name' => null, 'active' => true ];`. Offending attribute: `$attr: $v`.");
+            if (is_int($attr)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$attributes = [ 'name' => null, 'active' => true ];`. Offending attribute: `$attr: $v` in `".get_class($this).".");
 
             $defaultData['attributes'][$attr] = $v;
             $this->attributes[$attr] = null;
@@ -91,7 +91,7 @@ abstract class AbstractResource implements ResourceInterface {
 
         // Set relationships to null relationships, saving defaults
         foreach($this->relationships as $name => $v) {
-            if (is_int($name)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$relationships = [ 'friends' => [ 'data' => null ] ];`. Offending relationship: `$name: $v`.");
+            if (is_int($name)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$relationships = [ 'friends' => [ 'data' => null ] ];`. Offending relationship: `$name: $v` in `".get_class($this).".");
 
             $defaultData['relationships'][$name] = $v;
             $this->relationships[$name] = $this->getFactory()->newRelationship(['name' => $name]);
@@ -101,9 +101,9 @@ abstract class AbstractResource implements ResourceInterface {
         try {
             $this->internalUpdateFromData($defaultData);
         } catch (UnknownAttributeException $e) {
-            throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a setter for attribute `{$e->getOffenders()[0]}`. All attributes should have setters, though these setters don't have to be in the public scope.");
+            throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a setter for attribute `{$e->getOffenders()[0]}` in `".get_class($this).". All attributes should have setters, though these setters don't have to be in the public scope.");
         } catch (UnknownRelationshipException $e) {
-            throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a setter for relationship `{$e->getOffenders()[0]}`. All relationships should have setters, though these setters don't have to be in the public scope. (Relationships setters should set the *data* for the relationship, that is, they should receive a ResourceInterface, a ResourceCollectionInterface, or null.)");
+            throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a setter for relationship `{$e->getOffenders()[0]}` in `".get_class($this).". All relationships should have setters, though these setters don't have to be in the public scope. (Relationships setters should set the *data* for the relationship, that is, they should receive a ResourceInterface, a ResourceCollectionInterface, or null.)");
         }
 
         // Check to see if there's data waiting for us in our database
