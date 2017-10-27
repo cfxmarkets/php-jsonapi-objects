@@ -19,9 +19,11 @@ interface DatasourceInterface {
      * new -- Get a new instance of the Resource class represented by this client
      *
      * @param array|null $data User-provided (i.e., unsafe) data with which to initialize the new resource
+     * @param string|null $type An internal type specifying which permutation of this class you'd like (usually used
+     * to select public-facing vs private or internal classes)
      * @return \CFX\JsonApi\ResourceInterface
      */
-    public function create(array $data=null);
+    public function create(array $data = null, $type = null);
 
     /**
      * newCollection -- Get a new collection of this type of resource

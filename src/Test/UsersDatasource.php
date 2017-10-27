@@ -28,7 +28,7 @@ class UsersDatasource implements \CFX\JsonApi\DatasourceInterface {
         return $data;
     }
 
-    public function create(array $data=null) {
+    public function create(array $data=null, $type = null) {
         return new User($this, $data);
     }
 

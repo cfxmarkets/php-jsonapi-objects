@@ -319,6 +319,39 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertSame($boss, $user->getChanges()['relationships']['boss']->getData());
     }
 
+    /**
+     * This addresses bug https://github.com/cfxmarkets/php-jsonapi-objects/issues/2
+     */
+    public function testTracksChangesAccuratelyEvenIfDoubleSet() {
+        $users = new UsersDatasource();
+        $user = $users->create();
+
+        $this->assertEquals([ 'readonly' => 'default value' ], $user->getChanges()['attributes']);
+        $this->assertEquals([], $user->getChanges()['relationships']);
+
+        $user->setName("Test Testerson");
+
+        $users->setTestData('get-id=1', $this->getTestUserData());
+        $boss = $users->get('id=1');
+        $user->setBoss($boss);
+
+        $this->assertEquals(['readonly' => 'default value', 'name' => 'Test Testerson'], $user->getChanges()['attributes']);
+        $this->assertEquals(['boss'], array_keys($user->getChanges()['relationships']));
+        $this->assertSame($boss, $user->getChanges()['relationships']['boss']->getData());
+
+        // Set fields again (previously cleared changes)
+        $user->setName("Test Testerson");
+        $user->setBoss($boss);
+
+        $this->assertEquals(['readonly' => 'default value', 'name' => 'Test Testerson'], $user->getChanges()['attributes']);
+        $this->assertEquals(['boss'], array_keys($user->getChanges()['relationships']));
+        $this->assertSame($boss, $user->getChanges()['relationships']['boss']->getData());
+    }
+
+    public function testResetsInitialStateAfterSave() {
+        $this->markTestIncomplete();
+    }
+
     public function testCanGetCollectionLinkPath() {
         $users = new UsersDatasource();
         $user = $users->create();
