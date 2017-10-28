@@ -98,8 +98,7 @@ abstract class AbstractResource implements ResourceInterface {
         }
 
         // Set initial state here so it doesn't break down the line
-        $this->initialState['attributes'] = $this->attributes;
-        $this->initialState['relationships'] = $this->relationships;
+        $this->setInitialState();
 
         // update from data with default values to trigger validation and change tracking.
         try {
@@ -114,8 +113,7 @@ abstract class AbstractResource implements ResourceInterface {
         $this->restoreFromData();
 
         // Now set initial state again after full data initialization
-        $this->initialState['attributes'] = $this->attributes;
-        $this->initialState['relationships'] = $this->relationships;
+        $this->setInitialState();
 
         // Finally, if we've passed in initial data, update from that
         if ($data) $this->updateFromData($data);
@@ -303,7 +301,7 @@ abstract class AbstractResource implements ResourceInterface {
      * validateReadOnly -- Set an error if an attempt has been made to update a readonly field
      *
      * Since some values are difficult to check equality on (like DateTimes, for example), this function accepts a simple boolean `$changed`
-     * flag to indicate whether or not there was an attempt to change the field. You'll usually 
+     * flag to indicate whether or not there was an attempt to change the field. You'll usually
      *
      * @param string $field The name of the field for which to set an error
      * @param bool $changed Whether or not the field has changed
@@ -359,7 +357,20 @@ abstract class AbstractResource implements ResourceInterface {
     /**
      * {@inheritdoc}
      */
-    public function getChanges() {
+    public function getChanges($field = null) {
+        // If requesting a specific field, send it back
+        if ($field) {
+            if (!$this->hasChanges($field)) {
+                throw new FieldNotChangedException("Field `$field` has not changed.");
+            }
+            if (array_key_exists($field, $this->changes['attributes'])) {
+                return $this->serializeAttribute($field);
+            } else {
+                return $this->changes['relationships'][$field]->getData();
+            }
+        }
+
+        // Othewise, get all changes and send them back
         $changes = [
             'type' => $this->getResourceType(),
             'attributes' => [],
@@ -377,7 +388,14 @@ abstract class AbstractResource implements ResourceInterface {
     /**
      * {@inheritdoc}
      */
-    public function hasChanges() {
+    public function hasChanges($field=null) {
+        if ($field) {
+            return
+                array_key_exists($field, $this->changes['attributes']) ||
+                array_key_exists($field, $this->changes['relationships'])
+            ;
+        }
+
         return (
             count($this->changes['attributes']) +
             count($this->changes['relationships'])
@@ -389,8 +407,7 @@ abstract class AbstractResource implements ResourceInterface {
      */
     public function save() {
         $this->datasource->save($this);
-        $this->initialState['attributes'] = $this->attributes;
-        $this->initialState['relationships'] = $this->relationships;
+        $this->setInitialState();
         return $this;
     }
 
@@ -419,6 +436,27 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
+     * setInitialState -- Set the initial state of the resource
+     */
+    protected function setInitialState() {
+        $this->initialState['attributes'] = $this->attributes;
+        $this->initialState['relationships'] = [];
+        foreach($this->relationships as $name => $rel) {
+            $data = $rel->getData();
+            if ($data) {
+                if ($data instanceof ResourceCollectionInterface) {
+                    $val = $data->summarize();
+                } else {
+                    $val = $data->getId() ?: "initial-".rand(1,10000);
+                }
+            } else {
+                $val = null;
+            }
+            $this->initialState['relationships'][$name] = $val;
+        }
+    }
+
+    /**
      * serializeAttribute
      *
      * Serializes the value of the given attribute, if necessary
@@ -439,7 +477,12 @@ abstract class AbstractResource implements ResourceInterface {
      * @param mixed $value The value to set it to
      */
     protected function _setAttribute($name, $val) {
-        if ($val == $this->initialState['attributes'][$name]) return $this;
+        if ($val == $this->initialState['attributes'][$name]) {
+            if (array_key_exists($name, $this->changes['attributes'])) {
+                unset($this->changes['attributes'][$name]);
+            }
+            return $this;
+        }
         $this->attributes[$name] = $val;
         if ($this->trackChanges) $this->changes['attributes'][$name] = $val;
         return $this;
@@ -455,7 +498,7 @@ abstract class AbstractResource implements ResourceInterface {
      */
     protected function _setRelationship($name, $val) {
         $changed = true;
-        $initial = $this->initialState['relationships'][$name]->getData();
+        $initial = $this->initialState['relationships'][$name];
 
         // If we've passed a null value, ...
         if (!$val) {
@@ -467,34 +510,13 @@ abstract class AbstractResource implements ResourceInterface {
         } elseif ($val instanceof ResourceInterface) {
 
             // Then it hasn't changed if the initial value's id is the same as the new one
-            if ($initial && $val->getId() == $initial->getId()) $changed = false;
+            if ($initial && $val->getId() === $initial) $changed = false;
 
         // Else if the value is a collection, ...
         } elseif ($val instanceof ResourceCollectionInterface) {
 
-            // Then it hasn't changed if all of the members are the same
-            $newResources = $currentResources = [];
-
-            // Get array of the new ids
-            foreach ($val as $k => $resource) {
-                $newResources[] = $resource->getId();
-            }
-
-            // Get array of the old ids
-            if ($initial) {
-                foreach ($initial as $k => $resource) {
-                    $currentResources[] = $resource->getId();
-                }
-            }
-
-            // Sort both arrays
-            sort($newResources);
-            sort($currentResources);
-
-            // Compare the result
-            if (implode('', $newResources) === implode('', $currentResources)) {
-                $changed = false;
-            }
+            // Then it hasn't changed if the summary of the collection is the same as the initial summary
+            if ($initial === $val->summarize()) $changed = false;
 
         // Otherwise, the value somehow got set to something unrecognizable
         } else {
@@ -504,10 +526,19 @@ abstract class AbstractResource implements ResourceInterface {
         // Set the relationship regardless (this is our philosophy to avoid user surprises)
         $this->relationships[$name]->setData($val);
 
-        // Now track changes, if applicable
-        if ($changed && $this->trackChanges) {
-            $this->changes['relationships'][$name] = $this->relationships[$name];
+        // If changed, set the change (if applicable)
+        if ($changed) {
+            if ($this->trackChanges) {
+                $this->changes['relationships'][$name] = $this->relationships[$name];
+            }
+
+        // Otherwise, unset the change (if applicable)
+        } else {
+            if (array_key_exists($name, $this->changes['relationships'])) {
+                unset($this->changes['relationships'][$name]);
+            }
         }
+
 
         return $this;
     }

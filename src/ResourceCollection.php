@@ -14,9 +14,14 @@ class ResourceCollection extends Collection implements ResourceCollectionInterfa
     public function summarize() {
         $str = [];
         foreach($this->elements as $r) {
-            $type = ucfirst($r->getType());
-            $str[] = "$type resource #{$resource->getId()}";
+            if ($r->getId()) {
+                $id = $r->getId();
+            } else {
+                $id = "initial-".rand(1,10000);
+            }
+            $str[$id] = "{$r->getResourceType()}(#$id)";
         }
+        ksort($str);
         return implode("; ", $str);
     }
 }

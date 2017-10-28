@@ -88,3 +88,9 @@ class UnserializableObjectStateException extends JsonApiException {
     use OffenderExceptionTrait;
 }
 
+/**
+ * FieldNotChangedException
+ * Thrown when `ResourceInterface::getChanges($field)` is called on a field that has not changed
+ */
+class FieldNotChangedException extends JsonApiException {
+}

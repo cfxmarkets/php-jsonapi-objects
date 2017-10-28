@@ -76,18 +76,26 @@ interface ResourceInterface extends DataInterface, \JsonSerializable, \KS\ErrorH
     public function restoreFromData();
 
     /**
-     * getChanges
-     *
-     * @return array
-     */
-    public function getChanges();
-
-    /**
      * hasChanges
      *
+     * Checks to see whether the object -- or optionally a specific field -- has changed
+     *
+     * @param string|null $field An optional field to check, specifically
      * @return bool
      */
-    public function hasChanges();
+    public function hasChanges($field=null);
+
+    /**
+     * getChanges
+     *
+     * Gets changes for the object, or optionally the new value for a specific field
+     *
+     * @param string|null $field An optional field to return
+     * @return array
+     *
+     * @throws FieldNotChangedException
+     */
+    public function getChanges($field=null);
 
     /**
      * save to datasource
