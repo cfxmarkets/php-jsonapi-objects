@@ -88,6 +88,14 @@ interface DatasourceInterface {
      * @return \CFX\JsonApi\ResourceInterface
      */
     public function inflateRelated(array $data);
+
+    /**
+     * initializeResource -- Get data for a resource from the database and update the resource with it
+     *
+     * @param ResourceInterface $r The resource to initialize
+     * @return static
+     */
+    public function initializeResource(ResourceInterface $r);
 }
 
 

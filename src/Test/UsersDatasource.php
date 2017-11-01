@@ -46,6 +46,17 @@ class UsersDatasource implements \CFX\JsonApi\DatasourceInterface {
         }
     }
 
+    public function initializeResource(\CFX\JsonApi\ResourceInterface $r) {
+        if (!$r->getId()) {
+            return $this;
+        }
+
+        $targ = $this->get("id=".$r->getId());
+        $this->currentData = $targ->jsonSerialize();
+        $r->restoreFromData();
+        return $this;
+    }
+
     public function save(\CFX\JsonApi\ResourceInterface $r) {
         $result = $this->getTestData('save', 'Data should be a jsonapi-formatted array like what you would get back from the API on save');
 

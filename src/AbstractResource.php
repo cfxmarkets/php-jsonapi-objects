@@ -121,7 +121,7 @@ abstract class AbstractResource implements ResourceInterface {
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function restoreFromData() {
         $data = $this->datasource->getCurrentData();
@@ -135,7 +135,15 @@ abstract class AbstractResource implements ResourceInterface {
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
+     */
+    public function isInitialized() {
+        return $this->initialized;
+    }
+
+
+    /**
+     * @inheritdoc
      */
     public static function fromResource(ResourceInterface $src, DatasourceInterface $datasource=null) {
         if (!$datasource) $datasource = $src->datasource;
@@ -159,9 +167,7 @@ abstract class AbstractResource implements ResourceInterface {
             }
         }
 
-        $targ->honorReadOnly = false;
-        $targ->updateFromData($data);
-        $targ->honorReadOnly = true;
+        $targ->internalUpdateFromData($data);
 
         return $targ;
     }
@@ -181,7 +187,7 @@ abstract class AbstractResource implements ResourceInterface {
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function updateFromData(array $data) {
         // Set ID
@@ -268,7 +274,7 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function updateFromResource(ResourceInterface $r) {
         $this->updateFromData($r->jsonSerialize());
@@ -276,7 +282,7 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function setId($id) {
         //if ($this->validateReadOnly('id', $id === $this->getId())) {
@@ -287,12 +293,12 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getResourceType() { return $this->resourceType; }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getId() { return $this->id; }
 
@@ -331,7 +337,7 @@ abstract class AbstractResource implements ResourceInterface {
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function setBaseUri($uri) {
         $this->baseUri = rtrim($uri, '/');
@@ -339,14 +345,14 @@ abstract class AbstractResource implements ResourceInterface {
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getCollectionLinkPath() {
         return "/{$this->resourceType}";
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getSelfLinkPath() {
         $path = $this->getCollectionLinkPath();
@@ -355,7 +361,7 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getChanges($field = null) {
         // If requesting a specific field, send it back
@@ -386,7 +392,7 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function hasChanges($field=null) {
         if ($field) {
@@ -403,7 +409,7 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function save() {
         $this->datasource->save($this);
@@ -467,6 +473,64 @@ abstract class AbstractResource implements ResourceInterface {
     protected function serializeAttribute($name) {
         return $this->attributes[$name];
     }
+
+
+    /**
+     * _getAttributeValue -- Get's an attribute, checking to make sure the object has been initialized first
+     *
+     * @param string $name The name of the attribute to get
+     * @return mixed The value of the attribute
+     */
+    protected function _getAttributeValue($name)
+    {
+        if (!array_key_exists($name, $this->attributes)) {
+            throw new UnknownAttributeException("Programmer: Don't know how to retreive attribute `$name`.");
+        }
+
+        if (!$this->initialized) {
+            $this->_initialize();
+        }
+
+        return $this->attributes[$name];
+    }
+
+
+    /**
+     * _getRelationshipValue -- Get's a relationship value, checking to make sure that the object has been initialized first
+     *
+     * @param string $name The name of the relationship to get
+     * @return ResourceInterface|ResourceCollectionInterface|null The value of the relationship
+     */
+    protected function _getRelationshipValue($name)
+    {
+        if (!array_key_exists($name, $this->relationships)) {
+            throw new UnknownRelationshipException("Programmer: Don't know how to retreive relationship `$name`.");
+        }
+
+        if (!$this->initialized) {
+            $this->_initialize();
+        }
+
+        return $this->attributes[$name];
+    }
+
+
+    /**
+     * _initialize -- Initializes the object from the datasource, throwing an exception if there are already changed fields on it
+     *
+     * @return void
+     */
+    protected function _initialize() {
+        if ($this->hasChanges()) {
+            throw new \RuntimeException(
+                "Programmer: This object has changes that would be overwritten by initializing it from the database. ".
+                "You should make sure to initialize the resource before making any changes to it. Changes are: ".
+                json_encode($this->getChanges())
+            );
+        }
+        $this->datasource->initializeResource($this);
+    }
+
 
     /**
      * setAttribute
