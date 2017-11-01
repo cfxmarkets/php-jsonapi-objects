@@ -2,7 +2,9 @@
 namespace CFX\JsonApi;
 
 abstract class AbstractResource implements ResourceInterface {
-    use \KS\ErrorHandlerTrait;
+    use \KS\ErrorHandlerTrait {
+        \KS\ErrorHandlerTrait::setError as setJsonApiError;
+    }
 
     /** This resource's instance of the Datasource. **/
     protected $datasource;
@@ -20,8 +22,8 @@ abstract class AbstractResource implements ResourceInterface {
     private $honorReadOnly = true;
 
     /** Change-tracking properties **/
-    private $initialState = [ 'attributes' => [], 'relationships' => [] ];
-    private $changes = [ 'attributes' => [], 'relationships' => [] ];
+    protected $initialState = [ 'attributes' => [], 'relationships' => [] ];
+    protected $changes = [ 'attributes' => [], 'relationships' => [] ];
     protected $trackChanges = true;
 
     /**
@@ -334,6 +336,25 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
+     * validateRequired -- Set an error if an empty value has been set for the given attribute or relationship
+     *
+     * @param string $field The name of the field
+     * @param mixed $val The new value of the field
+     * @return bool Whether or not to proceed ('true' means it's valid, 'false' means its not)
+     */
+    protected function validateRequired($field, $val) {
+        if ($val === null || $val == '') {
+            $this->setError($field, 'required', [
+                "title" => "Missing Required Field `$field`",
+                "detail" => "Field `$field` is a required field and cannot be null."
+            ]);
+        } else {
+            $this->clearError($field, 'required');
+        }
+        return $this;
+    }
+
+    /**
      * valueDiffersFromInitial -- An internal method that checks to see whether a given value is diffent
      * from the intial value set.
      *
@@ -353,15 +374,12 @@ abstract class AbstractResource implements ResourceInterface {
             );
         }
 
+        // If it's Data, it must be a relationship, and relationship initial values are stored in string format
         if ($val instanceof DataInterface) {
             if ($val instanceof ResourceInterface) {
-                return !($test instanceof ResourceInterface) || $test->getId() !== $val->getId();
+                return $val->getId() !== $test;
             } else if ($val instanceof ResourceCollectionInterface) {
-                if ($test instanceof ResourceCollectionInterface) {
-                    return $test->summarize() !== $val->summarize();
-                } else {
-                    return true;
-                }
+                return $test !== $val->summarize();
             }
         }
 
@@ -616,12 +634,18 @@ abstract class AbstractResource implements ResourceInterface {
             $this->_initialize();
         }
 
-        if ($val == $this->initialState['attributes'][$name]) {
+        if (!array_key_exists($name, $this->attributes)) {
+            throw (new UnknownAttributeException("You're trying to set an attribute (`$name`) that is not valid for this resource."))
+                ->addOffender($name);
+        }
+
+        if (!$this->valueDiffersFromInitial($name, $val)) {
             if (array_key_exists($name, $this->changes['attributes'])) {
                 unset($this->changes['attributes'][$name]);
             }
             return $this;
         }
+
         $this->attributes[$name] = $val;
         if ($this->trackChanges) $this->changes['attributes'][$name] = $val;
         return $this;
@@ -640,37 +664,16 @@ abstract class AbstractResource implements ResourceInterface {
             $this->_initialize();
         }
 
-        $changed = true;
-        $initial = $this->initialState['relationships'][$name];
-
-        // If we've passed a null value, ...
-        if (!$val) {
-
-            // Then it hasn't changed if the initial value was also null
-            if ($initial === null) $changed = false;
-
-        // Else if the value is a resource, ...
-        } elseif ($val instanceof ResourceInterface) {
-
-            // Then it hasn't changed if the initial value's id is the same as the new one
-            if ($initial && $val->getId() === $initial) $changed = false;
-
-        // Else if the value is a collection, ...
-        } elseif ($val instanceof ResourceCollectionInterface) {
-
-            // Then it hasn't changed if the summary of the collection is the same as the initial summary
-            if ($initial === $val->summarize()) $changed = false;
-
-        // Otherwise, the value somehow got set to something unrecognizable
-        } else {
-            throw new \RuntimeException("Unrecognized relationship type! Relationships should be Resources, ResourceCollections or null.");
+        if (!array_key_exists($name, $this->relationships)) {
+            throw (new UnknownRelationshipException("You're trying to set a relationship (`$name`) that is not valid for this resource."))
+                ->addOffender($name);
         }
 
         // Set the relationship regardless (this is our philosophy to avoid user surprises)
         $this->relationships[$name]->setData($val);
 
         // If changed, set the change (if applicable)
-        if ($changed) {
+        if ($this->valueDiffersFromInitial($name, $val)) {
             if ($this->trackChanges) {
                 $this->changes['relationships'][$name] = $this->relationships[$name];
             }
@@ -682,7 +685,6 @@ abstract class AbstractResource implements ResourceInterface {
             }
         }
 
-
         return $this;
     }
 
@@ -692,6 +694,20 @@ abstract class AbstractResource implements ResourceInterface {
     protected function getFactory() {
         if (!$this->factory) $this->factory = new Factory();
         return $this->factory;
+    }
+
+    /**
+     * Make it easier to set errors on objects
+     */
+    protected function setError($field, $errorType, $error) {
+        if (is_array($error)) {
+            if (!array_key_exists($error['status'])) {
+                $error['status'] = 400;
+            }
+            $error = $this->getFactory()->newError($error);
+        }
+
+        return $this->setJsonApiError($field, $errorType, $error);
     }
 }
 

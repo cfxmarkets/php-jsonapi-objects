@@ -21,8 +21,12 @@ class ResourceCollection extends Collection implements ResourceCollectionInterfa
             }
             $str[$id] = "{$r->getResourceType()}(#$id)";
         }
-        ksort($str);
-        return implode("; ", $str);
+        if (count($str)) {
+            ksort($str);
+            return '['.implode("; ", $str).']';
+        } else {
+            return "[]";
+        }
     }
 }
 

@@ -68,6 +68,15 @@ interface DatasourceInterface {
     public function get($q=null);
 
     /**
+     * getRelated -- Get the resource or collection represented by the named relationship
+     *
+     * @param string $name The name of the relationship on the object
+     * @param string $id The id of the object requesting the related resource
+     * @return ResourceCollectionInterface|ResourceInterface $resource The related resource or collection
+     */
+    public function getRelated($name, $id);
+
+    /**
      * delete -- Delete a resource
      *
      * If the resources requested for deletion does not exist, no exception is thrown, since the end goal of the operation is that the
