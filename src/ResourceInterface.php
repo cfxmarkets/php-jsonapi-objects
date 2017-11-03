@@ -105,6 +105,14 @@ interface ResourceInterface extends DataInterface, \JsonSerializable, \KS\ErrorH
     public function save();
 
     /**
+     * convert to different type (uses datasource)
+     *
+     * @param string $type The type of resource to convert to (usually 'public' or 'private')
+     * @return mixed The new resource
+     */
+    public function convertTo($type);
+
+    /**
      * setBaseUri -- Set the uri off of which links are composed
      *
      * @param string $uri A valid string uri (without trailing slash)

@@ -6,6 +6,7 @@ trait PrivateResourceTrait {
         $this->honorReadOnly = false;
         parent::setId($id);
         $this->honorReadOnly = true;
+        return $this;
     }
 }
 

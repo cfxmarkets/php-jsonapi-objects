@@ -348,10 +348,11 @@ abstract class AbstractResource implements ResourceInterface {
                 "title" => "Missing Required Field `$field`",
                 "detail" => "Field `$field` is a required field and cannot be null."
             ]);
+            return false;
         } else {
             $this->clearError($field, 'required');
+            return true;
         }
-        return $this;
     }
 
     /**
@@ -490,6 +491,13 @@ abstract class AbstractResource implements ResourceInterface {
         $this->datasource->save($this);
         $this->setInitialState();
         return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function convertTo($type) {
+        return $this->datasource->convert($this, $type);
     }
 
     /**
@@ -639,15 +647,16 @@ abstract class AbstractResource implements ResourceInterface {
                 ->addOffender($name);
         }
 
+        $this->attributes[$name] = $val;
+
         if (!$this->valueDiffersFromInitial($name, $val)) {
             if (array_key_exists($name, $this->changes['attributes'])) {
                 unset($this->changes['attributes'][$name]);
             }
-            return $this;
+        } else {
+            if ($this->trackChanges) $this->changes['attributes'][$name] = $val;
         }
 
-        $this->attributes[$name] = $val;
-        if ($this->trackChanges) $this->changes['attributes'][$name] = $val;
         return $this;
     }
 
@@ -701,7 +710,7 @@ abstract class AbstractResource implements ResourceInterface {
      */
     protected function setError($field, $errorType, $error) {
         if (is_array($error)) {
-            if (!array_key_exists($error['status'])) {
+            if (!array_key_exists('status', $error)) {
                 $error['status'] = 400;
             }
             $error = $this->getFactory()->newError($error);

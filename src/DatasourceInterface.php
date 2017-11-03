@@ -13,7 +13,7 @@ interface DatasourceInterface {
      *
      * @return array $data
      */
-    function getCurrentData();
+    public function getCurrentData();
 
     /**
      * new -- Get a new instance of the Resource class represented by this client

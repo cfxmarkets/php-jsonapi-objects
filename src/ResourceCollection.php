@@ -11,6 +11,17 @@ class ResourceCollection extends Collection implements ResourceCollectionInterfa
         parent::offsetSet($offset, $value);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function convertTo($type) {
+        $collection = new static();
+        foreach($this->elements as $r) {
+            $collection[] = $r->convertTo($type);
+        }
+        return $collection;
+    }
+
     public function summarize() {
         $str = [];
         foreach($this->elements as $r) {
