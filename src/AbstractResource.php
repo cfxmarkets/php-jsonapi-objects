@@ -291,7 +291,7 @@ abstract class AbstractResource implements ResourceInterface {
      */
     public function setId($id) {
         //if ($this->validateReadOnly('id', $id)) {
-            if ($this->id !== null && $id != $this->id) throw new DuplicateIdException("This resource already has an id. You cannot set a new ID for it.");
+            if ($this->id !== null && $id != $this->id) throw new DuplicateIdException("This resource already has an id (`$this->id`). You cannot set a new ID for it (`$id`).");
             $this->id = $id;
         //}
         return $this;
