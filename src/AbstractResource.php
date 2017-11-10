@@ -19,7 +19,7 @@ abstract class AbstractResource implements ResourceInterface {
     protected $relationships = [];
 
     /** Flag for honoring read-only attributes and relationships **/
-    private $honorReadOnly = true;
+    protected $honorReadOnly = true;
 
     /** Change-tracking properties **/
     protected $initialState = [ 'attributes' => [], 'relationships' => [] ];
@@ -575,9 +575,7 @@ abstract class AbstractResource implements ResourceInterface {
             return $this->attributes[$name];
         }
 
-        if (!$this->initialized) {
-            $this->_initialize();
-        }
+        $this->initialize();
 
         return $this->attributes[$name];
     }
@@ -596,21 +594,19 @@ abstract class AbstractResource implements ResourceInterface {
                 ->addOffender($name);
         }
 
-        if (!$this->initialized) {
-            $this->_initialize();
-        }
+        $this->initialize();
 
         return $this->relationships[$name]->getData();
     }
 
 
     /**
-     * _initialize -- Initializes the object from the datasource, throwing an exception if there are already changed fields on it
+     * initialize -- Initializes the object from the datasource, throwing an exception if there are already changed fields on it
      *
      * @return void
      */
-    protected function _initialize() {
-        if (!$this->initializing) {
+    public function initialize() {
+        if (!$this->initialized && !$this->initializing) {
             /*
              * TODO: Fix this. Currently, non-null default data is registered as "changes" on object instantiation. This is
              * desirable, but it has the side effect of causing this initialization to break even when the changes are "throw
@@ -638,9 +634,7 @@ abstract class AbstractResource implements ResourceInterface {
      * @param mixed $value The value to set it to
      */
     protected function _setAttribute($name, $val) {
-        if (!$this->initialized) {
-            $this->_initialize();
-        }
+        $this->initialize();
 
         if (!array_key_exists($name, $this->attributes)) {
             throw (new UnknownAttributeException("You're trying to set an attribute (`$name`) that is not valid for this resource."))
@@ -669,9 +663,7 @@ abstract class AbstractResource implements ResourceInterface {
      * @param ResourceInterface|ResourceCollectionInterface $value The value to set it to
      */
     protected function _setRelationship($name, $val) {
-        if (!$this->initialized) {
-            $this->_initialize();
-        }
+        $this->initialize();
 
         if (!array_key_exists($name, $this->relationships)) {
             throw (new UnknownRelationshipException("You're trying to set a relationship (`$name`) that is not valid for this resource."))
