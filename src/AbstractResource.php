@@ -343,7 +343,7 @@ abstract class AbstractResource implements ResourceInterface {
      * @return bool Whether or not to proceed ('true' means it's valid, 'false' means its not)
      */
     protected function validateRequired($field, $val) {
-        if ($val === null || $val == '') {
+        if ($val === null || $val === '') {
             $this->setError($field, 'required', [
                 "title" => "Missing Required Field `$field`",
                 "detail" => "Field `$field` is a required field and cannot be null."

@@ -5,6 +5,8 @@ class MockDatasource implements \CFX\JsonApi\DatasourceInterface
 {
     protected $currentData = null;
     protected $callStack = [];
+    protected $creationStack = [];
+    protected $debug = false;
 
     public function getCurrentData()
     {
@@ -20,10 +22,34 @@ class MockDatasource implements \CFX\JsonApi\DatasourceInterface
         return $stack;
     }
 
+    public function setDebug($debug)
+    {
+        $this->debug = $debug;
+        return $this;
+    }
+
+    public function addClassToCreate($className)
+    {
+        if (is_array($className)) {
+            $this->creationStack = array_merge($this->creationStack, $className);
+        } else {
+            $this->creationStack[] = $className;
+        }
+        return $this;
+    }
+
     public function create(array $data = null, $type = null)
     {
         $this->callStack[] = "create([data], '$type')";
-        return new \CFX\JsonApi\GenericResource($this, $data);
+        if (!($classname = array_shift($this->creationStack))) {
+            $classname = "\\CFX\\JsonApi\\GenericResource";
+        }
+
+        if ($this->debug) {
+            echo "\nCreating class `$classname`";
+        }
+
+        return new $classname($this, $data);
     }
 
     public function newCollection(array $collection=null)
