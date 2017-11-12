@@ -11,13 +11,33 @@ class ResourceCollection extends Collection implements ResourceCollectionInterfa
         parent::offsetSet($offset, $value);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function convertTo($type) {
+        $collection = new static();
+        foreach($this->elements as $r) {
+            $collection[] = $r->convertTo($type);
+        }
+        return $collection;
+    }
+
     public function summarize() {
         $str = [];
         foreach($this->elements as $r) {
-            $type = ucfirst($r->getType());
-            $str[] = "$type resource #{$resource->getId()}";
+            if ($r->getId()) {
+                $id = $r->getId();
+            } else {
+                $id = "initial-".rand(1,10000);
+            }
+            $str[$id] = "{$r->getResourceType()}(#$id)";
         }
-        return implode("; ", $str);
+        if (count($str)) {
+            ksort($str);
+            return '['.implode("; ", $str).']';
+        } else {
+            return "[]";
+        }
     }
 }
 

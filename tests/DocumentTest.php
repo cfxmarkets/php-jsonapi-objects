@@ -29,7 +29,6 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
         $doc->setData(new ResourceCollection([
             $users->create([
                 'type' => 'test-users',
-                'id' => '1',
                 'attributes' => [
                     'name' => 'joni'
                 ]
@@ -40,7 +39,6 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
 
         $doc->setData($users->create([
             'type' => 'test-users',
-            'id' => '1',
             'attributes' => [
                 'name' => 'joni'
             ]

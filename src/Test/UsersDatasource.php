@@ -28,7 +28,7 @@ class UsersDatasource implements \CFX\JsonApi\DatasourceInterface {
         return $data;
     }
 
-    public function create(array $data=null) {
+    public function create(array $data=null, $type = null) {
         return new User($this, $data);
     }
 
@@ -44,6 +44,17 @@ class UsersDatasource implements \CFX\JsonApi\DatasourceInterface {
         } else {
             throw new \RuntimeException("Don't know how to convert to `$convertTo` type resources.");
         }
+    }
+
+    public function initializeResource(\CFX\JsonApi\ResourceInterface $r) {
+        if (!$r->getId()) {
+            return $this;
+        }
+
+        $targ = $this->get("id=".$r->getId());
+        $this->currentData = $targ->jsonSerialize();
+        $r->restoreFromData();
+        return $this;
     }
 
     public function save(\CFX\JsonApi\ResourceInterface $r) {
@@ -84,6 +95,11 @@ class UsersDatasource implements \CFX\JsonApi\DatasourceInterface {
         } else {
             return $data[0];
         }
+    }
+
+    public function getRelated($name, $id)
+    {
+        return $this->get("$name-$id");
     }
 
     public function delete($r) {

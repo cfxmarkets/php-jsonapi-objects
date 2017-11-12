@@ -13,15 +13,17 @@ interface DatasourceInterface {
      *
      * @return array $data
      */
-    function getCurrentData();
+    public function getCurrentData();
 
     /**
      * new -- Get a new instance of the Resource class represented by this client
      *
      * @param array|null $data User-provided (i.e., unsafe) data with which to initialize the new resource
+     * @param string|null $type An internal type specifying which permutation of this class you'd like (usually used
+     * to select public-facing vs private or internal classes)
      * @return \CFX\JsonApi\ResourceInterface
      */
-    public function create(array $data=null);
+    public function create(array $data = null, $type = null);
 
     /**
      * newCollection -- Get a new collection of this type of resource
@@ -66,6 +68,15 @@ interface DatasourceInterface {
     public function get($q=null);
 
     /**
+     * getRelated -- Get the resource or collection represented by the named relationship
+     *
+     * @param string $name The name of the relationship on the object
+     * @param string $id The id of the object requesting the related resource
+     * @return ResourceCollectionInterface|ResourceInterface $resource The related resource or collection
+     */
+    public function getRelated($name, $id);
+
+    /**
      * delete -- Delete a resource
      *
      * If the resources requested for deletion does not exist, no exception is thrown, since the end goal of the operation is that the
@@ -86,6 +97,14 @@ interface DatasourceInterface {
      * @return \CFX\JsonApi\ResourceInterface
      */
     public function inflateRelated(array $data);
+
+    /**
+     * initializeResource -- Get data for a resource from the database and update the resource with it
+     *
+     * @param ResourceInterface $r The resource to initialize
+     * @return static
+     */
+    public function initializeResource(ResourceInterface $r);
 }
 
 

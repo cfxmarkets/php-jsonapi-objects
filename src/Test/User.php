@@ -25,10 +25,12 @@ class User extends \CFX\JsonApi\AbstractResource {
 
     public function setFriends(\CFX\JsonApi\ResourceCollectionInterface $r=null) {
         $this->_setRelationship('friends', $r);
+        return $this;
     }
 
     public function setBoss(\CFX\JsonApi\ResourceInterface $r=null) {
         $this->_setRelationship('boss', $r);
+        return $this;
     }
 
     public function getName() { return $this->attributes['name']; }
