@@ -5,7 +5,7 @@ interface GenericResourceInterface extends ResourceInterface {
     function setAttribute($attr, $val);
     function getAttribute($k);
     function getAttributes();
-    function setRelationship(RelationshipInterface $r);
+    function setRelationship($name, $r = null);
     function getRelationship($k);
     function getRelationships();
 }

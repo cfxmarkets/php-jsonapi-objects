@@ -2,7 +2,9 @@
 namespace CFX\JsonApi;
 
 abstract class AbstractResource implements ResourceInterface {
-    use \KS\ErrorHandlerTrait;
+    use \KS\ErrorHandlerTrait {
+        \KS\ErrorHandlerTrait::setError as setJsonApiError;
+    }
 
     /** This resource's instance of the Datasource. **/
     protected $datasource;
@@ -17,11 +19,11 @@ abstract class AbstractResource implements ResourceInterface {
     protected $relationships = [];
 
     /** Flag for honoring read-only attributes and relationships **/
-    private $honorReadonly = true;
+    protected $honorReadOnly = true;
 
     /** Change-tracking properties **/
-    private $changedAttributes = [];
-    private $changedRelationships = [];
+    protected $initialState = [ 'attributes' => [], 'relationships' => [] ];
+    protected $changes = [ 'attributes' => [], 'relationships' => [] ];
     protected $trackChanges = true;
 
     /**
@@ -33,6 +35,7 @@ abstract class AbstractResource implements ResourceInterface {
      * have been initialized. The `AbstractResource` class doesn't make any accommodations for the implementation of this
      * logic, but understands that such functionality may be desireable.
      */
+    protected $initializing = false;
     protected $initialized = false;
     protected $initializedRelationships = [];
 
@@ -83,7 +86,7 @@ abstract class AbstractResource implements ResourceInterface {
 
         // Set all attributes to null initially, saving default values
         foreach($this->attributes as $attr => $v) {
-            if (is_int($attr)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$attributes = [ 'name' => null, 'active' => true ];`. Offending attribute: `$attr: $v`.");
+            if (is_int($attr)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$attributes = [ 'name' => null, 'active' => true ];`. Offending attribute: `$attr: $v` in `".get_class($this).".");
 
             $defaultData['attributes'][$attr] = $v;
             $this->attributes[$attr] = null;
@@ -91,23 +94,29 @@ abstract class AbstractResource implements ResourceInterface {
 
         // Set relationships to null relationships, saving defaults
         foreach($this->relationships as $name => $v) {
-            if (is_int($name)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$relationships = [ 'friends' => [ 'data' => null ] ];`. Offending relationship: `$name: $v`.");
+            if (is_int($name)) throw new \RuntimeException("Programmer: You must define all attributes and relationships as key-value pairs, e.g., `protected \$relationships = [ 'friends' => [ 'data' => null ] ];`. Offending relationship: `$name: $v` in `".get_class($this).".");
 
             $defaultData['relationships'][$name] = $v;
             $this->relationships[$name] = $this->getFactory()->newRelationship(['name' => $name]);
         }
 
+        // Set initial state here so it doesn't break down the line
+        $this->setInitialState();
+
         // update from data with default values to trigger validation and change tracking.
         try {
             $this->internalUpdateFromData($defaultData);
         } catch (UnknownAttributeException $e) {
-            throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a setter for attribute `{$e->getOffenders()[0]}`. All attributes should have setters, though these setters don't have to be in the public scope.");
+            throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a getter or setter for attribute `{$e->getOffenders()[0]}` in `".get_class($this).". All attributes should have getters and setters, though these don't have to be in the public scope.");
         } catch (UnknownRelationshipException $e) {
-            throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a setter for relationship `{$e->getOffenders()[0]}`. All relationships should have setters, though these setters don't have to be in the public scope. (Relationships setters should set the *data* for the relationship, that is, they should receive a ResourceInterface, a ResourceCollectionInterface, or null.)");
+            throw new \RuntimeException("Programmer: Looks like you may have forgotten to add a getter or setter for relationship `{$e->getOffenders()[0]}` in `".get_class($this).". All relationships should have getters and setters, though these don't have to be in the public scope. (Relationships setters should set the *data* for the relationship, that is, they should receive a ResourceInterface, a ResourceCollectionInterface, or null.)");
         }
 
         // Check to see if there's data waiting for us in our database
         $this->restoreFromData();
+
+        // Now set initial state again after full data initialization
+        $this->setInitialState();
 
         // Finally, if we've passed in initial data, update from that
         if ($data) $this->updateFromData($data);
@@ -115,40 +124,29 @@ abstract class AbstractResource implements ResourceInterface {
 
 
     /**
-     * Restore an object from data persisted to a secure datasource
-     *
-     * This method is called from the constructor ONLY and is intended to allow the datasource to reliably
-     * inflate objects. It may also be called by a datasource to update an object with the returned fields
-     * in the event of a `save`.
+     * @inheritdoc
      */
     public function restoreFromData() {
         $data = $this->datasource->getCurrentData();
         if ($data) {
             $this->internalUpdateFromData($data);
-            $this->changedAttributes = [];
-            $this->changedRelationships = [];
+            $this->changes['attributes'] = [];
+            $this->changes['relationships'] = [];
             $this->initialized = true;
         }
     }
 
 
     /**
-     * fromResource -- Creates another, different resource object from the given resource
-     *
-     * This method is designed to allow "filtering" of properties and resources between contexts, for
-     * example when converting from a "public-space" resource like an SDK resource to a "private-space"
-     * resource for further manipulation.
-     *
-     * Note: This method is resource type-sensitive. It will choke when trying to create a resource
-     * from a resource of a different declared type. It was not designed to enable polymorphic cloning,
-     * rather, it was to facilitate a security boundary between public-space and protected-space resources.
-     *
-     * Other than that, it is a naive method: If there are properties that match the properties
-     * of the resource being created, they will be used to populate its data. Because of this, it does NOT
-     * populate information about initialization status or changes.
-     *
-     * @param ResourceInterface
-     * @return static
+     * @inheritdoc
+     */
+    public function isInitialized() {
+        return $this->initialized;
+    }
+
+
+    /**
+     * @inheritdoc
      */
     public static function fromResource(ResourceInterface $src, DatasourceInterface $datasource=null) {
         if (!$datasource) $datasource = $src->datasource;
@@ -161,14 +159,19 @@ abstract class AbstractResource implements ResourceInterface {
             'relationships' => [],
         ];
 
-        foreach($targ->attributes as $name => $v) {
-            if (array_key_exists($name, $src->attributes)) $data['attributes'][$name] = $v;
+        foreach(array_keys($targ->attributes) as $name) {
+            if (array_key_exists($name, $src->attributes)) {
+                $data['attributes'][$name] = $src->attributes[$name];
+            }
         }
-        foreach($targ->relationships as $name => $v) {
-            if (array_key_exists($name, $src->relationships)) $data['relationships'][$name] = $v;
+        foreach(array_keys($targ->relationships) as $name) {
+            if (array_key_exists($name, $src->relationships)) {
+                $data['relationships'][$name] = $src->relationships[$name];
+            }
         }
 
-        $targ->updateFromData($data);
+        $targ->internalUpdateFromData($data);
+        $targ->initialized = $src->initialized;
 
         return $targ;
     }
@@ -182,16 +185,15 @@ abstract class AbstractResource implements ResourceInterface {
      */
     protected function internalUpdateFromData(array $data) {
         $this->honorReadOnly = false;
+        $this->initializing = true;
         $this->updateFromData($data);
+        $this->initializing = false;
         $this->honorReadOnly = true;
     }
 
 
     /**
-     * Update fields from passed-in user data in jsonapi format
-     *
-     * @param array $data A JSON-API-formatted array of data defining attributes and relationships to set
-     * @return void
+     * @inheritdoc
      */
     public function updateFromData(array $data) {
         // Set ID
@@ -268,40 +270,40 @@ abstract class AbstractResource implements ResourceInterface {
 
         // Now throw errors on leftover data
         if (count($data) > 0) {
-            $e = new MalformedDataException("You have unrecognized data in your JsonApi Resource. Offending keys are: `".implode('`, `', array_keys($data))."`.");
-            $e->addOffender("Resource (`$this->resourceType`)");
-            $e->setOffendingData($data);
-            throw $e;
+            throw (new MalformedDataException("You have unrecognized data in your JsonApi Resource. Offending keys are: `".implode('`, `', array_keys($data))."`."))
+                ->addOffender("Resource (`$this->resourceType`)")
+                ->setOffendingData($data);
         }
-    }
 
-    /**
-     * setId
-     *
-     * Set the Id, if it's not already set
-     *
-     * @param string $id The id of the object
-     * @return static
-     *
-     * @throws DuplicateIdException
-     */
-    public function setId($id) {
-        if ($this->id !== null && $id != $this->id) throw new DuplicateIdException("This resource already has an id. You cannot set a new ID for it.");
-        $this->id = $id;
         return $this;
     }
 
     /**
-     * getResourceType
-     *
-     * @return string $resourceType
+     * @inheritdoc
+     */
+    public function updateFromResource(ResourceInterface $r) {
+        $this->updateFromData($r->jsonSerialize());
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setId($id) {
+        //if ($this->validateReadOnly('id', $id)) {
+            if ($this->id !== null && $id != $this->id) throw new DuplicateIdException("This resource already has an id (`$this->id`). You cannot set a new ID for it (`$id`).");
+            $this->id = $id;
+        //}
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
      */
     public function getResourceType() { return $this->resourceType; }
 
     /**
-     * getId
-     *
-     * @return string $id
+     * @inheritdoc
      */
     public function getId() { return $this->id; }
 
@@ -310,21 +312,16 @@ abstract class AbstractResource implements ResourceInterface {
      * validateReadOnly -- Set an error if an attempt has been made to update a readonly field
      *
      * Since some values are difficult to check equality on (like DateTimes, for example), this function accepts a simple boolean `$changed`
-     * flag to indicate whether or not there was an attempt to change the field. You'll usually 
+     * flag to indicate whether or not there was an attempt to change the field. You'll usually
      *
      * @param string $field The name of the field for which to set an error
-     * @param bool $changed Whether or not the field has changed
+     * @param mixed $val The new value of the field
      * @return bool Whether or not the value should be changed
      */
-    public function validateReadOnly($field, $changed) {
-        if (!is_bool($changed)) throw new \RuntimeException(
-            "Programmer: You must pass a valid expression that evaluates to a boolean 'true' or 'false' for the ".
-            "second argument of this method. For example, `\$this->validateReadOnly('myField', \$newVal != \$this->getMyField());`."
-        );
-
+    protected function validateReadOnly($field, $val) {
         // If we're honoring readonly fields do the validation. (Otherwise, skip)
         if ($this->honorReadOnly) {
-            if ($changed) {
+            if ($this->valueDiffersFromInitial($field, $val)) {
                 $this->setError($field, 'readonly', $this->getFactory()->newError([
                     "status" => 400,
                     "title" => "`$field` is read-only",
@@ -338,20 +335,96 @@ abstract class AbstractResource implements ResourceInterface {
         return true;
     }
 
+    /**
+     * validateRequired -- Set an error if an empty value has been set for the given attribute or relationship
+     *
+     * @param string $field The name of the field
+     * @param mixed $val The new value of the field
+     * @return bool Whether or not to proceed ('true' means it's valid, 'false' means its not)
+     */
+    protected function validateRequired($field, $val) {
+        if ($val === null || $val === '') {
+            $this->setError($field, 'required', [
+                "title" => "Missing Required Field `$field`",
+                "detail" => "Field `$field` is a required field and cannot be null."
+            ]);
+            return false;
+        } else {
+            $this->clearError($field, 'required');
+            return true;
+        }
+    }
 
     /**
-     * getCollectionLinkPath
+     * valueDiffersFromInitial -- An internal method that checks to see whether a given value is diffent
+     * from the intial value set.
      *
-     * @return string The path for the collection
+     * @param string $name The field name (attribute or relationship)
+     * @param mixed $val The new value
+     * @return bool
+     */
+    protected function valueDiffersFromInitial($name, $val) {
+        if (array_key_exists($name, $this->initialState['attributes'])) {
+            $test = $this->initialState['attributes'][$name];
+        } elseif (array_key_exists($name, $this->initialState['relationships'])) {
+            $test = $this->initialState['relationships'][$name];
+        } else {
+            throw new \RuntimeException(
+                "Programmer: `$name` is not registered in either the `attributes` or `relationships` initial state. Is this ".
+                "a typo?"
+            );
+        }
+
+        // If it's Data, it must be a relationship, and relationship initial values are stored in string format
+        if ($val instanceof DataInterface) {
+            if ($val instanceof ResourceInterface) {
+                return $val->getId() !== $test;
+            } else if ($val instanceof ResourceCollectionInterface) {
+                return $test !== $val->summarize();
+            }
+        }
+
+        return $val !== $test;
+    }
+
+
+    /**
+     * getInitial -- Gets the initial value for an attribute or relationship
+     *
+     * @param string $name The field name (attribute or relationship)
+     * @return mixed The initial value of the field
+     */
+    protected function getInitial($name) {
+        if (array_key_exists($name, $this->initialState['attributes'])) {
+            return $this->initialState['attributes'][$name];
+        } elseif (array_key_exists($name, $this->initialState['relationships'])) {
+            return $this->initialState['relationships'][$name];
+        } else {
+            throw new \RuntimeException(
+                "Programmer: `$name` is not registered in either the `attributes` or `relationships` initial state. Is this ".
+                "a typo?"
+            );
+        }
+    }
+
+
+    /**
+     * @inheritdoc
+     */
+    public function setBaseUri($uri) {
+        $this->baseUri = rtrim($uri, '/');
+    }
+
+
+    /**
+     * @inheritdoc
      */
     public function getCollectionLinkPath() {
         return "/{$this->resourceType}";
     }
 
     /**
-     * getSelfLinkPath
-     *
-     * @return string
+     * @inheritdoc
      */
     public function getSelfLinkPath() {
         $path = $this->getCollectionLinkPath();
@@ -360,19 +433,34 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
-     * getChanges
-     *
-     * @return array
+     * @inheritdoc
      */
-    public function getChanges() {
+    public function getChanges($field = null) {
+        // If requesting a specific field, send it back
+        if ($field) {
+            if (!$this->hasChanges($field)) {
+                throw new FieldNotChangedException("Field `$field` has not changed.");
+            }
+            if (array_key_exists($field, $this->changes['attributes'])) {
+                return $this->serializeAttribute($field);
+            } else {
+                return $this->changes['relationships'][$field]->getData();
+            }
+        }
+
+        // Othewise, get all changes and send them back
         $changes = [
             'type' => $this->getResourceType(),
             'attributes' => [],
-            'relationships' => $this->changedRelationships,
         ];
+
+        if (count($this->changes['relationships']) > 0) {
+            $changes['relationships'] = $this->changes['relationships'];
+        }
+
         if ($this->getId()) $changes['id'] = $this->getId();
 
-        foreach (array_keys($this->changedAttributes) as $attr) {
+        foreach (array_keys($this->changes['attributes']) as $attr) {
             $changes['attributes'][$attr] = $this->serializeAttribute($attr);
         }
 
@@ -380,25 +468,36 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
-     * hasChanges
-     *
-     * @return bool
+     * @inheritdoc
      */
-    public function hasChanges() {
+    public function hasChanges($field=null) {
+        if ($field) {
+            return
+                array_key_exists($field, $this->changes['attributes']) ||
+                array_key_exists($field, $this->changes['relationships'])
+            ;
+        }
+
         return (
-            count($this->changedAttributes) +
-            count($this->changedRelationships)
+            count($this->changes['attributes']) +
+            count($this->changes['relationships'])
         ) > 0;
     }
 
     /**
-     * save to datasource
-     *
-     * @return static
+     * @inheritdoc
      */
     public function save() {
         $this->datasource->save($this);
+        $this->setInitialState();
         return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function convertTo($type) {
+        return $this->datasource->convert($this, $type);
     }
 
     /**
@@ -426,6 +525,27 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
+     * setInitialState -- Set the initial state of the resource
+     */
+    protected function setInitialState() {
+        $this->initialState['attributes'] = $this->attributes;
+        $this->initialState['relationships'] = [];
+        foreach($this->relationships as $name => $rel) {
+            $data = $rel->getData();
+            if ($data) {
+                if ($data instanceof ResourceCollectionInterface) {
+                    $val = $data->summarize();
+                } else {
+                    $val = $data->getId() ?: "initial-".rand(1,10000);
+                }
+            } else {
+                $val = null;
+            }
+            $this->initialState['relationships'][$name] = $val;
+        }
+    }
+
+    /**
      * serializeAttribute
      *
      * Serializes the value of the given attribute, if necessary
@@ -437,6 +557,74 @@ abstract class AbstractResource implements ResourceInterface {
         return $this->attributes[$name];
     }
 
+
+    /**
+     * _getAttributeValue -- Get's an attribute, checking to make sure the object has been initialized first
+     *
+     * @param string $name The name of the attribute to get
+     * @return mixed The value of the attribute
+     */
+    protected function _getAttributeValue($name)
+    {
+        if (!array_key_exists($name, $this->attributes)) {
+            throw (new UnknownAttributeException("Programmer: Don't know how to retreive attribute `$name`."))
+                ->addOffender($name);
+        }
+
+        if (!$this->getId()) {
+            return $this->attributes[$name];
+        }
+
+        $this->initialize();
+
+        return $this->attributes[$name];
+    }
+
+
+    /**
+     * _getRelationshipValue -- Get's a relationship value, checking to make sure that the object has been initialized first
+     *
+     * @param string $name The name of the relationship to get
+     * @return ResourceInterface|ResourceCollectionInterface|null The value of the relationship
+     */
+    protected function _getRelationshipValue($name)
+    {
+        if (!array_key_exists($name, $this->relationships)) {
+            throw (new UnknownRelationshipException("Programmer: Don't know how to retreive relationship `$name`."))
+                ->addOffender($name);
+        }
+
+        $this->initialize();
+
+        return $this->relationships[$name]->getData();
+    }
+
+
+    /**
+     * initialize -- Initializes the object from the datasource, throwing an exception if there are already changed fields on it
+     *
+     * @return void
+     */
+    public function initialize() {
+        if (!$this->initialized && !$this->initializing) {
+            /*
+             * TODO: Fix this. Currently, non-null default data is registered as "changes" on object instantiation. This is
+             * desirable, but it has the side effect of causing this initialization to break even when the changes are "throw
+             * away". Perhaps a good opportunity to implement ResourcePointers.
+             *
+            if ($this->hasChanges()) {
+                throw new \RuntimeException(
+                    "Programmer: This object has changes that would be overwritten by initializing it from the database. ".
+                    "You should make sure to initialize the resource before making any changes to it. Changes are: ".
+                    json_encode($this->getChanges())
+                );
+            }
+             */
+            $this->datasource->initializeResource($this);
+        }
+    }
+
+
     /**
      * setAttribute
      *
@@ -446,9 +634,23 @@ abstract class AbstractResource implements ResourceInterface {
      * @param mixed $value The value to set it to
      */
     protected function _setAttribute($name, $val) {
-        if ($val == $this->attributes[$name]) return $this;
+        $this->initialize();
+
+        if (!array_key_exists($name, $this->attributes)) {
+            throw (new UnknownAttributeException("You're trying to set an attribute (`$name`) that is not valid for this resource."))
+                ->addOffender($name);
+        }
+
         $this->attributes[$name] = $val;
-        if ($this->trackChanges) $this->changedAttributes[$name] = $val;
+
+        if (!$this->valueDiffersFromInitial($name, $val)) {
+            if (array_key_exists($name, $this->changes['attributes'])) {
+                unset($this->changes['attributes'][$name]);
+            }
+        } else {
+            if ($this->trackChanges) $this->changes['attributes'][$name] = $val;
+        }
+
         return $this;
     }
 
@@ -461,27 +663,28 @@ abstract class AbstractResource implements ResourceInterface {
      * @param ResourceInterface|ResourceCollectionInterface $value The value to set it to
      */
     protected function _setRelationship($name, $val) {
-        $changed = true;
-        if (!$val) {
-            if ($this->relationships[$name]->getData() === null) $changed = false;
-        } elseif ($val instanceof ResourceInterface) {
-            $rel = $this->relationships[$name]->getData();
-            if ($rel && $val->getId() == $rel->getId()) $changed = false;
-        } elseif ($val instanceof ResourceCollectionInterface) {
-            $newResources = $currentResources = [];
-            foreach ($val as $k => $resource) $newResources[] = $resource->getId();
-            if ($this->relationships[$name]->getData()) {
-                foreach ($this->relationships[$name]->getData() as $k => $resource) $currentResources[] = $resource->getId();
-            }
-            sort($newResources);
-            sort($currentResources);
-            if (implode('', $newResources) == implode('', $currentResources)) $changed = false;
-        } else {
-            throw new \RuntimeException("Unrecognized relationship type! Relationships should be Resources, ResourceCollections or null.");
+        $this->initialize();
+
+        if (!array_key_exists($name, $this->relationships)) {
+            throw (new UnknownRelationshipException("You're trying to set a relationship (`$name`) that is not valid for this resource."))
+                ->addOffender($name);
         }
 
+        // Set the relationship regardless (this is our philosophy to avoid user surprises)
         $this->relationships[$name]->setData($val);
-        if ($changed && $this->trackChanges) $this->changedRelationships[$name] = $this->relationships[$name];
+
+        // If changed, set the change (if applicable)
+        if ($this->valueDiffersFromInitial($name, $val)) {
+            if ($this->trackChanges) {
+                $this->changes['relationships'][$name] = $this->relationships[$name];
+            }
+
+        // Otherwise, unset the change (if applicable)
+        } else {
+            if (array_key_exists($name, $this->changes['relationships'])) {
+                unset($this->changes['relationships'][$name]);
+            }
+        }
 
         return $this;
     }
@@ -492,6 +695,20 @@ abstract class AbstractResource implements ResourceInterface {
     protected function getFactory() {
         if (!$this->factory) $this->factory = new Factory();
         return $this->factory;
+    }
+
+    /**
+     * Make it easier to set errors on objects
+     */
+    protected function setError($field, $errorType, $error) {
+        if (is_array($error)) {
+            if (!array_key_exists('status', $error)) {
+                $error['status'] = 400;
+            }
+            $error = $this->getFactory()->newError($error);
+        }
+
+        return $this->setJsonApiError($field, $errorType, $error);
     }
 }
 

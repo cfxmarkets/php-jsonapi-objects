@@ -41,6 +41,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function testCanCreateValidResource() {
         $data = $this->getTestUserData();
+        unset($data['id']);
 
         $datasource = new UsersDatasource();
 
@@ -57,6 +58,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function testCanUpdateResourceFromUserInput() {
         $data = $this->getTestUserData();
+        unset($data['id']);
 
         $datasource = new UsersDatasource();
 
@@ -197,6 +199,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function testSerializesCorrectly() {
         $data = $this->getTestUserData();
+        unset($data['id']);
 
         $datasource = new UsersDatasource();
 
@@ -204,7 +207,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $data = [
             'type' => $data['type'],
-            'id' => "1",
+            'id' => null,
             'attributes' => $data['attributes'],
             'relationships' => $data['relationships'],
         ];
@@ -284,29 +287,14 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals(0, $t2->numErrors());
     }
 
-    public function testGetChangesReturnsValidJsonApiResourceRepresentation() {
-        $users = new UsersDatasource();
-        $users->setTestData('get-id=1', $this->getTestUserData());
-        $user = $users->get('id=1');
 
-        $changes = $user->getChanges();
-        $this->assertEquals('1', $changes['id']);
-        $this->assertEquals('test-users', $changes['type']);
-        $this->assertContains('attributes', array_keys($changes));
-        $this->assertContains('relationships', array_keys($changes));
-        $this->assertEquals(4, count(array_keys($changes)));
-    }
-
-    public function testGetChangesSerializesAttributes() {
-        $this->markTestIncomplete();
-    }
 
     public function testSetsChangesForAttributesAndRelationships() {
         $users = new UsersDatasource();
         $user = $users->create();
 
         $this->assertEquals([ 'readonly' => 'default value' ], $user->getChanges()['attributes']);
-        $this->assertEquals([], $user->getChanges()['relationships']);
+        $this->assertFalse(array_key_exists('relationships', $user->getChanges()));
 
         $user->setName("Test Testerson");
 
@@ -318,6 +306,80 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals(['boss'], array_keys($user->getChanges()['relationships']));
         $this->assertSame($boss, $user->getChanges()['relationships']['boss']->getData());
     }
+
+    /**
+     * This addresses bug https://github.com/cfxmarkets/php-jsonapi-objects/issues/2
+     */
+    public function testTracksChangesAccuratelyEvenIfDoubleSet() {
+        $users = new UsersDatasource();
+        $user = $users->create();
+
+        $this->assertEquals([ 'readonly' => 'default value' ], $user->getChanges()['attributes']);
+        $this->assertFalse(array_key_exists('relationships', $user->getChanges()));
+
+        $user->setName("Test Testerson");
+
+        $users->setTestData('get-id=1', $this->getTestUserData());
+        $boss = $users->get('id=1');
+        $user->setBoss($boss);
+
+        $this->assertEquals(['readonly' => 'default value', 'name' => 'Test Testerson'], $user->getChanges()['attributes']);
+        $this->assertEquals(['boss'], array_keys($user->getChanges()['relationships']));
+        $this->assertSame($boss, $user->getChanges('boss'));
+
+        // Set fields again (previously cleared changes, now should not)
+        $user->setName("Test Testerson");
+        $user->setBoss($boss);
+
+        $this->assertEquals(['readonly' => 'default value', 'name' => 'Test Testerson'], $user->getChanges()['attributes']);
+        $this->assertEquals(['boss'], array_keys($user->getChanges()['relationships']));
+        $this->assertSame($boss, $user->getChanges('boss'));
+    }
+
+    public function testResetsInitialStateAfterSave() {
+        $this->markTestIncomplete();
+    }
+
+    public function testGetChangesReturnsValidJsonApiResourceRepresentation() {
+        $users = new UsersDatasource();
+        $users->setTestData('get-id=1', $this->getTestUserData());
+        $user = $users->get('id=1');
+
+        $changes = $user->getChanges();
+        $this->assertEquals('1', $changes['id']);
+        $this->assertEquals('test-users', $changes['type']);
+        $this->assertContains('attributes', array_keys($changes));
+        $this->assertNotContains('relationships', array_keys($changes));
+        $this->assertEquals(3, count(array_keys($changes)));
+        $this->markTestIncomplete(
+            "Do we really want 'relationships' to be exceptional? Maybe changes should return null if there are no changes, or maybe it should ".
+            "just return a resource pointer if nothing has changed.... At any rate, it should be more consistent."
+        );
+    }
+
+    public function testGetChangesSerializesAttributes() {
+        $this->markTestIncomplete();
+    }
+
+    public function testCanGetChangesForSpecificField() {
+        $users = new UsersDatasource();
+        $users->setTestData('get-id=1', $this->getTestUserData());
+        $user = $users->get('id=1');
+
+        $this->assertFalse($user->hasChanges());
+        $this->assertFalse($user->hasChanges('name'));
+        $this->assertFalse($user->hasChanges('dob'));
+
+        $user->setName("New Name");
+
+        $this->assertTrue($user->hasChanges());
+        $this->assertTrue($user->hasChanges('name'));
+        $this->assertFalse($user->hasChanges('dob'));
+
+        $this->assertEquals("New Name", $user->getChanges('name'));
+    }
+
+
 
     public function testCanGetCollectionLinkPath() {
         $users = new UsersDatasource();
