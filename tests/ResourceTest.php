@@ -41,6 +41,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function testCanCreateValidResource() {
         $data = $this->getTestUserData();
+        unset($data['id']);
 
         $datasource = new UsersDatasource();
 
@@ -57,6 +58,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function testCanUpdateResourceFromUserInput() {
         $data = $this->getTestUserData();
+        unset($data['id']);
 
         $datasource = new UsersDatasource();
 
@@ -197,6 +199,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
     public function testSerializesCorrectly() {
         $data = $this->getTestUserData();
+        unset($data['id']);
 
         $datasource = new UsersDatasource();
 
@@ -204,7 +207,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $data = [
             'type' => $data['type'],
-            'id' => "1",
+            'id' => null,
             'attributes' => $data['attributes'],
             'relationships' => $data['relationships'],
         ];
@@ -291,7 +294,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $user = $users->create();
 
         $this->assertEquals([ 'readonly' => 'default value' ], $user->getChanges()['attributes']);
-        $this->assertEquals([], $user->getChanges()['relationships']);
+        $this->assertFalse(array_key_exists('relationships', $user->getChanges()));
 
         $user->setName("Test Testerson");
 
@@ -312,7 +315,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $user = $users->create();
 
         $this->assertEquals([ 'readonly' => 'default value' ], $user->getChanges()['attributes']);
-        $this->assertEquals([], $user->getChanges()['relationships']);
+        $this->assertFalse(array_key_exists('relationships', $user->getChanges()));
 
         $user->setName("Test Testerson");
 
@@ -346,8 +349,12 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
         $this->assertEquals('1', $changes['id']);
         $this->assertEquals('test-users', $changes['type']);
         $this->assertContains('attributes', array_keys($changes));
-        $this->assertContains('relationships', array_keys($changes));
-        $this->assertEquals(4, count(array_keys($changes)));
+        $this->assertNotContains('relationships', array_keys($changes));
+        $this->assertEquals(3, count(array_keys($changes)));
+        $this->markTestIncomplete(
+            "Do we really want 'relationships' to be exceptional? Maybe changes should return null if there are no changes, or maybe it should ".
+            "just return a resource pointer if nothing has changed.... At any rate, it should be more consistent."
+        );
     }
 
     public function testGetChangesSerializesAttributes() {

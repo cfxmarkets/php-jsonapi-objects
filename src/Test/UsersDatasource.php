@@ -97,6 +97,11 @@ class UsersDatasource implements \CFX\JsonApi\DatasourceInterface {
         }
     }
 
+    public function getRelated($name, $id)
+    {
+        return $this->get("$name-$id");
+    }
+
     public function delete($r) {
         return $this;
     }
