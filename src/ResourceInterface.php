@@ -76,6 +76,27 @@ interface ResourceInterface extends DataInterface, \JsonSerializable, \KS\ErrorH
     public function restoreFromData();
 
     /**
+     * Checks to see whether or not a resources has been initialized
+     *
+     * @return bool
+     */
+    public function isInitialized();
+
+    /**
+     * Initializes the object from the datasource, throwing an exception if there are already changed fields on it
+     *
+     * @return static
+     */
+    public function initialize();
+
+    /**
+     * Refreshes a resource from datasource
+     *
+     * @return static
+     */
+    public function refresh();
+
+    /**
      * hasChanges
      *
      * Checks to see whether the object -- or optionally a specific field -- has changed

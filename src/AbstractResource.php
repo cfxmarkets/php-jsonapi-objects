@@ -509,8 +509,14 @@ abstract class AbstractResource implements ResourceInterface {
      */
     public function jsonSerialize($fullResource=true) {
         $data = [];
-        $data['type'] = $this->resourceType;
-        $data['id'] = $this->id;
+
+        if ($this->resourceType) {
+            $data['type'] = $this->resourceType;
+        }
+
+        if ($this->id) {
+            $data['id'] = $this->id;
+        }
 
         if (!$fullResource) return $data;
 
@@ -519,7 +525,15 @@ abstract class AbstractResource implements ResourceInterface {
         }
         if (count($this->relationships) > 0) {
             $data['relationships'] = [];
-            foreach($this->relationships as $r) $data['relationships'][$r->getName()] = $this->getFactory()->resourceIdentifierFromResource($r);
+            foreach($this->relationships as $r) {
+                $data['relationships'][$r->getName()] = [
+                    'data' => (
+                        $r->getData() ?
+                        $r->getData()->jsonSerialize(false) :
+                        null
+                    )
+                ];
+            }
         }
         return $data;
     }
@@ -601,12 +615,10 @@ abstract class AbstractResource implements ResourceInterface {
 
 
     /**
-     * initialize -- Initializes the object from the datasource, throwing an exception if there are already changed fields on it
-     *
-     * @return void
+     * @inheritdoc
      */
     public function initialize() {
-        if (!$this->initialized && !$this->initializing) {
+        if (!$this->initialized && !$this->initializing && $this->getId()) {
             /*
              * TODO: Fix this. Currently, non-null default data is registered as "changes" on object instantiation. This is
              * desirable, but it has the side effect of causing this initialization to break even when the changes are "throw
@@ -622,6 +634,17 @@ abstract class AbstractResource implements ResourceInterface {
              */
             $this->datasource->initializeResource($this);
         }
+        return $this;
+    }
+
+
+    /**
+     * @inheritdoc
+     */
+    public function refresh()
+    {
+        $this->initialized = false;
+        return $this->initialize();
     }
 
 

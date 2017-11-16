@@ -103,8 +103,10 @@ class MockDatasource implements \CFX\JsonApi\DatasourceInterface
 
     public function initializeResource(\CFX\JsonApi\ResourceInterface $r)
     {
-        $this->callStack[] = "initializeResource('{$r->getResourceType()}({$r->getId()}')";
-        $this->currentData = [];
+        $this->callStack[] = "initializeResource({$r->getResourceType()}({$r->getId()}))";
+        $this->currentData = [
+            "id" => $r->getId()
+        ];
         $r->restoreFromData();
         return $this;
     }

@@ -207,7 +207,6 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $data = [
             'type' => $data['type'],
-            'id' => null,
             'attributes' => $data['attributes'],
             'relationships' => $data['relationships'],
         ];
@@ -394,6 +393,56 @@ class ResourceTest extends \PHPUnit\Framework\TestCase {
 
         $user->setId('12345');
         $this->assertEquals("/test-users/12345", $user->getSelfLinkPath());
+    }
+
+    public function testInitialize()
+    {
+        $ds = new MockDatasource();
+        $user = new User($ds);
+
+        // Try to initialize without id
+        $user->initialize();
+        $this->assertFalse($user->isInitialized(), "Shouldn't be initialized without id");
+        $this->assertNotContains('initializeResource(test-users())', $ds->getCallStack(), "Shouldn't have called the datasource if it doesn't have an ID");
+
+        // Give it an id
+        $user->setId("12345");
+
+        // Try again
+        $user->initialize();
+        $this->assertTrue($user->isInitialized(), "Should now be initialized.");
+        $this->assertContains('initializeResource(test-users(12345))', $ds->getCallStack(), "Should have called the datasource");
+
+        // Do a redundant initialization
+        $user->initialize();
+        $this->assertTrue($user->isInitialized());
+        $this->assertNotContains('initializeResource(test-users(12345))', $ds->getCallStack(), "Should not have called the datasource again");
+    }
+
+    public function testRefreshResource()
+    {
+        $ds = new MockDatasource();
+        $user = new User($ds);
+
+        $this->assertFalse($user->isInitialized(), "Should start of uninitialized");
+
+        // Try to refresh without id
+        $user->refresh();
+        $this->assertFalse($user->isInitialized(), "Should still be uninitialized because it doesn't have an id yet");
+        $this->assertNotContains('initializeResource(test-users())', $ds->getCallStack(), "Shouldn't have called the datasource if it doesn't have an ID");
+
+        // Give it an id
+        $user->setId("12345");
+
+        // Try again
+        $user->refresh();
+        $this->assertTrue($user->isInitialized(), "Should now be initialized.");
+        $this->assertContains('initializeResource(test-users(12345))', $ds->getCallStack(), "Should have called the datasource");
+
+        // Do a redundant refresh
+        $user->refresh();
+        $this->assertTrue($user->isInitialized());
+        $this->assertContains('initializeResource(test-users(12345))', $ds->getCallStack(), "Should have called the datasource again");
     }
 }
 
