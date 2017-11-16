@@ -67,7 +67,8 @@ class DocumentTest extends \PHPUnit\Framework\TestCase {
             'jsonapi' => [ 'version' => '1.0' ],
         ];
 
-        $this->assertEquals(json_encode($struct), json_encode($doc));
+        $this->assertEquals(json_encode($struct),
+            json_encode($doc));
 
         $doc->addError(new Error([
             'status' => 400,
