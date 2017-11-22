@@ -526,13 +526,7 @@ abstract class AbstractResource implements ResourceInterface {
         if (count($this->relationships) > 0) {
             $data['relationships'] = [];
             foreach($this->relationships as $r) {
-                $data['relationships'][$r->getName()] = [
-                    'data' => (
-                        $r->getData() ?
-                        $r->getData()->jsonSerialize(false) :
-                        null
-                    )
-                ];
+                $data['relationships'][$r->getName()] = $r;
             }
         }
         return $data;
