@@ -43,7 +43,7 @@ trait Rel2MTrait {
         } catch (CollectionUndefinedIndexException $e) {
             // Nothing to do if not in collection
         }
-        return;
+        return $this;
     }
 
     protected function initialize2MRel($name) {
