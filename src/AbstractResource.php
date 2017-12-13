@@ -159,18 +159,38 @@ abstract class AbstractResource implements ResourceInterface {
             'relationships' => [],
         ];
 
+        $initialState = [
+            'attributes' => [],
+            'relationships' => [],
+        ];
+
+        $changes = [
+            'attributes' => [],
+            'relationships' => [],
+        ];
+
         foreach(array_keys($targ->attributes) as $name) {
             if (array_key_exists($name, $src->attributes)) {
                 $data['attributes'][$name] = $src->attributes[$name];
+                $initialState['attributes'][$name] = $src->initialState['attributes'][$name];
+                if (array_key_exists($name, $src->changes['attributes'])) {
+                    $changes['attributes'][$name] = $src->changes['attributes'][$name];
+                }
             }
         }
         foreach(array_keys($targ->relationships) as $name) {
             if (array_key_exists($name, $src->relationships)) {
                 $data['relationships'][$name] = $src->relationships[$name];
+                $initialState['relationships'][$name] = $src->initialState['relationships'][$name];
+                if (array_key_exists($name, $src->changes['relationships'])) {
+                    $changes['relationships'][$name] = $src->changes['relationships'][$name];
+                }
             }
         }
 
         $targ->internalUpdateFromData($data);
+        $targ->initialState = array_replace_recursive($targ->initialState, $initialState);
+        $targ->changes = array_replace_recursive($targ->changes, $changes);
         $targ->initialized = $src->initialized;
 
         return $targ;
