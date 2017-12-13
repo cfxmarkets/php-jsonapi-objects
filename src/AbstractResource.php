@@ -19,7 +19,7 @@ abstract class AbstractResource implements ResourceInterface {
     protected $relationships = [];
 
     /** Flag for honoring read-only attributes and relationships **/
-    protected $honorReadOnly = true;
+    private $honorReadOnly = true;
 
     /** Change-tracking properties **/
     protected $initialState = [ 'attributes' => [], 'relationships' => [] ];
@@ -184,11 +184,12 @@ abstract class AbstractResource implements ResourceInterface {
      * @see self::updateFromData
      */
     protected function internalUpdateFromData(array $data) {
-        $this->honorReadOnly = false;
+        $initializing = $this->initializing;
         $this->initializing = true;
-        $this->updateFromData($data);
-        $this->initializing = false;
-        $this->honorReadOnly = true;
+        $this->readOnlyOverride(function() use ($data) {
+            return $this->updateFromData($data);
+        });
+        $this->initializing = $initializing;
     }
 
 
@@ -334,6 +335,29 @@ abstract class AbstractResource implements ResourceInterface {
         }
         return true;
     }
+
+
+    /**
+     * readOnlyOverride -- Override read-only setting for the given method and value
+     *
+     * This method can be used by derivative classes to override the read-only setting for a given field. Normally,
+     * a public-facing class might declare a setter with the `validateReadOnly` method in it to prevent user-originating
+     * changes to the field. Internal extensions of that class can wrap a call to `parent::setField` in a closure and
+     * send it to this function, which will temporarily disable read-only monitoring while executing the logic within
+     * the Closure.
+     *
+     * @param \Closure $func The function to execute with read-only mode turned off
+     * @return mixed Returns whatever the Closure returned (should be `$this`, but doesn't have to be)
+     */
+    protected function readOnlyOverride(\Closure $method)
+    {
+        $readonly = $this->honorReadOnly;
+        $this->honorReadOnly = false;
+        $result = $method();
+        $this->honorReadOnly = $readonly;
+        return $result;
+    }
+
 
     /**
      * validateRequired -- Set an error if an empty value has been set for the given attribute or relationship
