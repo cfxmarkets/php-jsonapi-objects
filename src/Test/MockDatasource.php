@@ -52,7 +52,7 @@ class MockDatasource implements \CFX\JsonApi\DatasourceInterface
         return new $classname($this, $data);
     }
 
-    public function newCollection(array $collection=null)
+    public function newCollection(array $collection = [])
     {
         $this->callStack[] = "newCollection([elements])";
         return new \CFX\JsonApi\ResourceCollection($collection);

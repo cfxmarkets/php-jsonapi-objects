@@ -16,7 +16,7 @@ interface DatasourceInterface {
     public function getCurrentData();
 
     /**
-     * new -- Get a new instance of the Resource class represented by this client
+     * Create a new instance of the Resource class represented by this datasource
      *
      * @param array|null $data User-provided (i.e., unsafe) data with which to initialize the new resource
      * @param string|null $type An internal type specifying which permutation of this class you'd like (usually used
@@ -29,7 +29,7 @@ interface DatasourceInterface {
      * newCollection -- Get a new collection of this type of resource
      * 
      * @param array|null $collection An array of objects with which to initialize the collection
-     * @return ResourceCollection
+     * @return ResourceCollectionInterface
      */
     public function newCollection(array $collection=null);
 
@@ -38,8 +38,10 @@ interface DatasourceInterface {
      *
      * Used primarily for converting between public and private resource types. You would use this, for example, to
      * parse an incoming request using a public datatype (say, `User`), then convert it to a private datatype with
-     * more capabilities (say, `InternalUser`). (The `InternalUser` class might allow you to do things -- like set status
-     * and role -- that the public `User` class doesn't.)
+     * more capabilities (say, `InternalUser`). (The `InternalUser` class might allow you to do things like set status
+     * and role that the public `User` class doesn't.)
+     *
+     * Should throw an UnknownResourceTypeException when the `$convertTo` parameter is not recognized
      *
      * @param \CFX\JsonApi\ResourceInterface $src The source object to convert
      * @param string $convertTo A string describing what to convert to
@@ -58,10 +60,14 @@ interface DatasourceInterface {
     /**
      * get -- Get resources, optionally filtered by a query
      *
+     * The optional query should be a string DSL query that you are prepared to parse. This can be as simple or
+     * as complex as you'd like, but was left intentionally vague to facilitate arbitrarily complex queries across
+     * any type of persistence system.
+     *
      * @param string $query An optional query with which to filter resources.
      * @return \CFX\JsonApi\ResourceInterface|ResourceCollectionInterface The resource or resource collection returned
      * by the query. If the query includes an ID, then a single resource is returned (or exception thrown). If it doesn't include an
-     * id, then an empty collection may be returned if there are no results.
+     * id, then a (possibly empty) collection is returned.
      *
      * @throws ResourceNotFoundException
      */
@@ -69,6 +75,10 @@ interface DatasourceInterface {
 
     /**
      * getRelated -- Get the resource or collection represented by the named relationship
+     *
+     * **NOTE:** At the time of this writing, this method has some ambiguous uses. When getting a to-one relationship,
+     * the `$id` paramter is the ID of the related resource itself. When getting a to-many relationship, the `$id`
+     * parameter represents the ID of the requesting resource. Hopefully this will be resolved soon.
      *
      * @param string $name The name of the relationship on the object
      * @param string $id The id of the object requesting the related resource
@@ -91,7 +101,7 @@ interface DatasourceInterface {
      * inflateRelated -- Turn data for a related resource into an object
      *
      * This method is made available to resources so they may attempt to create more specifically typed resources to represent their
-     * relationships. (It will usually be delegated up to a DataContext.)
+     * relationships. It is an opportunity to delegate creation to other known datasources in the ecosystem.
      *
      * @param array $data The data representing the related resource
      * @return \CFX\JsonApi\ResourceInterface
