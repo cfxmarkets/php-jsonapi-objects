@@ -23,23 +23,23 @@ interface ResourceInterface extends DataInterface, \JsonSerializable, \KS\ErrorH
     public static function fromResource(ResourceInterface $r);
 
     /**
-     * getResourceType
+     * Gets the JSON API type of this resource
      *
      * @return string $resourceType
      */
     public function getResourceType();
 
     /**
-     * getId
+     * Gets the resource's id
      *
-     * @return string $id
+     * @return null|string $id
      */
     public function getId();
 
     /**
-     * setId
+     * Sets the resource's id, if not already set
      *
-     * Set the Id, if it's not already set
+     * If the resource ID is already set, should throw a DuplicateIdException
      *
      * @param string $id The id of the object
      * @return static
@@ -52,7 +52,7 @@ interface ResourceInterface extends DataInterface, \JsonSerializable, \KS\ErrorH
      * Update fields from passed-in user data in jsonapi format
      *
      * @param array $data A JSON-API-formatted array of data defining attributes and relationships to set
-     * @return void
+     * @return static
      */
     public function updateFromData(array $data);
 
@@ -83,7 +83,9 @@ interface ResourceInterface extends DataInterface, \JsonSerializable, \KS\ErrorH
     public function isInitialized();
 
     /**
-     * Initializes the object from the datasource, throwing an exception if there are already changed fields on it
+     * Initializes the object from the datasource
+     *
+     * Should throw an exception if there are already changed fields on the object
      *
      * @return static
      */
@@ -91,6 +93,9 @@ interface ResourceInterface extends DataInterface, \JsonSerializable, \KS\ErrorH
 
     /**
      * Refreshes a resource from datasource
+     *
+     * This may be useful if, for example, an object's fields have been updated elsewhere and those
+     * updates need to be propagated to already-existing program objects
      *
      * @return static
      */
@@ -119,14 +124,16 @@ interface ResourceInterface extends DataInterface, \JsonSerializable, \KS\ErrorH
     public function getChanges($field=null);
 
     /**
-     * save to datasource
+     * Save to the attached datasource
+     *
+     * Should throw an exception if there is no attached datasource
      *
      * @return static
      */
     public function save();
 
     /**
-     * convert to different type (uses datasource)
+     * Convert to different type (for example, "private" or "public")
      *
      * @param string $type The type of resource to convert to (usually 'public' or 'private')
      * @return mixed The new resource

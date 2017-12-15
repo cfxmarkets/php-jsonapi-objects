@@ -6,48 +6,87 @@ abstract class AbstractResource implements ResourceInterface {
         \KS\ErrorHandlerTrait::setError as setJsonApiError;
     }
 
-    /** This resource's instance of the Datasource. **/
+    /**
+     * @var \CFX\JsonApi\DatasourceInterface This resource's instance of the Datasource.
+     */
     protected $datasource;
 
-    /** This resource's factory instance for instantiating other jsonapi family members **/
+    /**
+     * @var \CFX\JsonApi\FactoryInterface This resource's factory instance for instantiating other jsonapi family members
+     *
+     * NOTE: This can be changed by overriding the `getFactory` method
+     */
     protected $factory;
 
-    /** Fields that match with JSON-API Resource fields **/
+    /**
+     * @var string JSON API id field
+     */
     protected $id;
+
+    /**
+     * @var string JSON API resource type field
+     */
     protected $resourceType;
+
+    /**
+     * @var array JSON API attributes container
+     */
     protected $attributes = [];
+
+    /**
+     * @var array JSON API relationships container
+     */
     protected $relationships = [];
 
-    /** Flag for honoring read-only attributes and relationships **/
+    /**
+     * @var bool Flag to trigger honoring of read-only attributes and relationships
+     *
+     * This is an internal flag that allows us to set readonly fields from the datasource or from
+     * more privileged derivative classes, but sets errors on the object when users attempt to
+     * set read-only fields.
+     */
     private $honorReadOnly = true;
 
-    /** Change-tracking properties **/
+    /**
+     * @var array Container for storing initial object state, for comparison in change tracking
+     */
     protected $initialState = [ 'attributes' => [], 'relationships' => [] ];
+
+    /**
+     * @var array Container for storing changes
+     */
     protected $changes = [ 'attributes' => [], 'relationships' => [] ];
+
+    /**
+     * @var bool Flag indicating whether or not we should track changes.
+     */
     protected $trackChanges = true;
 
     /**
-     * Fields to track relationship to database.
-     *
-     * Generally, `$initialized` should be false when this is a new object or a resource identifier. If the resource
-     * was inflated from persistence, $initialized should be true. Because resources may have complex relationships
-     * wth other resources, the field `$relationshipsInitialized` may be used to track which to-many relationships
-     * have been initialized. The `AbstractResource` class doesn't make any accommodations for the implementation of this
-     * logic, but understands that such functionality may be desireable.
+     * @var bool Flag to indicate that the object is in the process of being initialized. (Affects logic that retrieves
+     * missing data when setting uninitialized fields.)
      */
     protected $initializing = false;
+
+    /**
+     * @var bool Flag to indicate whether or not this object was initialized from a valid datasource
+     */
     protected $initialized = false;
+
+    /**
+     * @var array Relationship-indexed array indicating whether or not each to-many relationship has been initialized yet
+     */
     protected $initializedRelationships = [];
 
 
     /**
      * Constructor: constructs a Resource object
      *
-     * If $data is provided, it is used to set fields. If $data contains a `type` field, it cannot conflict with any
-     * pre-set type or an Exception will be thrown.
+     * If $data is provided, it is used as USER DATA (i.e., untrusted) to set fields. If $data contains a `type` field, it
+     * cannot conflict with any pre-set type or an Exception will be thrown.
      *
      * You may define the valid attributes and relationships in the `$attributes` and `relationships` arrays. Either may have
-     * default values (if it makes sense).. These are the arrays that are dumped when the object is
+     * default values (if it makes sense). These are the arrays that are dumped when the object is
      * serialized to JSON, so they should represent the object's *public* attributes and relationships. Any private
      * attributes or relationships should be stored elsewhere.
      *
@@ -62,17 +101,18 @@ abstract class AbstractResource implements ResourceInterface {
      * Given the following `$attributes` and `$relationships` arrays, set methods may look like this:
      *
      *     protected $attributes = [ 'name' => null, 'dob' => null, 'active' => true ];
-     *     protected $relationships = [ 'addresses', 'boss' ];
+     *     protected $relationships = [ 'addresses' => null, 'boss' => null ];
      *
      *     public function setName($name);
      *     public function setDob($dob);
      *     public function setActive($active);
-     *     public function setAddresses(ResourceCollectionInterface $addresses);
+     *     public function setAddresses(ResourceCollectionInterface $addresses = null);
      *     public function addAddress(AddressInterface $address);
      *     public function hasAddress(AddressInterface $address);
      *     public function removeAddress(AddressInterface $address);
-     *     public function setBoss(PersonInterface $boss);
+     *     public function setBoss(PersonInterface $boss = null);
      *
+     * @param DatasourceInterface $datasource A datasource instance
      * @param array $data An optional array of user data with which to initialize the object
      * @return static
      */
@@ -578,6 +618,8 @@ abstract class AbstractResource implements ResourceInterface {
 
     /**
      * setInitialState -- Set the initial state of the resource
+     *
+     * @return void
      */
     protected function setInitialState() {
         $this->initialState['attributes'] = $this->attributes;
@@ -751,7 +793,9 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
-     * get this resource's factory (optionally overridable by child classes)
+     * Get this resource's factory (optionally overridable by child classes)
+     *
+     * @return \CFX\JsonApi\FactoryInterface
      */
     protected function getFactory() {
         if (!$this->factory) $this->factory = new Factory();
@@ -760,6 +804,12 @@ abstract class AbstractResource implements ResourceInterface {
 
     /**
      * Make it easier to set errors on objects
+     *
+     * @param string $field The field name to which to attach the error
+     * @param string $errorType An arbitrary type specifier for adding multiple different types of errors
+     * to a field
+     * @param array $error An array of JSON API-compatible error fields (like "title" and "detail")
+     * @return static
      */
     protected function setError($field, $errorType, $error) {
         if (is_array($error)) {
