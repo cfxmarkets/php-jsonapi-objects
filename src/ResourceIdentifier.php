@@ -84,7 +84,7 @@ class ResourceIdentifier implements ResourceIdentifierInterface {
      */
     public function setMeta($meta) {
         if (!is_array($meta) && !($meta instanceof MetaInterface)) throw new \InvalidArgumentException("Meta must either be an array or a JsonApi Meta object");
-        if (is_array($meta)) $meta = $this->getFactory()->newMeta($meta)
+        if (is_array($meta)) $meta = $this->getFactory()->newMeta($meta);
         $this->meta = $meta;
     }
 
