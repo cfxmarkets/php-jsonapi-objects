@@ -10,7 +10,7 @@ class Collection implements CollectionInterface  {
 
     protected $stringIndexable = true;
 
-    public function __construct($items=[]) {
+    public function __construct(array $items=[]) {
         foreach($items as $k => $v) $this[$k] = $v;
     }
 
