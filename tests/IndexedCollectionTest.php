@@ -43,8 +43,7 @@ class IndexedCollectionTest extends \PHPUnit\Framework\TestCase {
         try {
             json_encode($t);
             $this->fail("Should have thrown an error");
-        } catch (\Exception $e) {
-            if (!($e->getPrevious() instanceof \CFX\JsonApi\UnserializableObjectStateException)) throw $e;
+        } catch (\CFX\JsonApi\UnserializableObjectStateException $e) {
             $this->assertTrue(true, "This is the desired behavior");
         }
     }
@@ -94,8 +93,7 @@ class IndexedCollectionTest extends \PHPUnit\Framework\TestCase {
         try {
             json_encode($t);
             $this->fail("Should have thrown an error");
-        } catch (\Exception $e) {
-            if (!($e->getPrevious() instanceof \CFX\JsonApi\CollectionConflictingMemberException)) throw $e;
+        } catch (\CFX\JsonApi\CollectionConflictingMemberException $e) {
             $this->assertTrue(true, "This is the expected behavior");
         }
     }
