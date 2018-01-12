@@ -31,7 +31,7 @@ interface DatasourceInterface {
      * @param array|null $collection An array of objects with which to initialize the collection
      * @return ResourceCollectionInterface
      */
-    public function newCollection(array $collection=null);
+    public function newCollection(array $collection=[]);
 
     /**
      * convert -- Converts between two types of instances

@@ -7,7 +7,7 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
         try {
             $e = new Error();
             $this->fail("Should have thrown an error");
-        } catch (PHPUnit_Framework_Error $e) {
+        } catch (\ArgumentCountError $e) {
             $this->assertTrue(true, "This is the expected behavior");
         }
 

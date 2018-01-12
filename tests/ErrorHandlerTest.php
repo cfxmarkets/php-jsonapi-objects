@@ -73,7 +73,7 @@ class ErrorHandlerTest extends \PHPUnit\Framework\TestCase {
         try {
             $t->produceError('testField', null, 'Some message');
             $this->fail("Should have thrown an exception");
-        } catch (\Exception $e) {
+        } catch (\TypeError $e) {
             $this->assertContains("CFX\JsonApi\ErrorInterface", $e->getMessage(), "This is the expected behavior");
         }
     }
