@@ -8,6 +8,12 @@ class MockDatasource implements \CFX\JsonApi\DatasourceInterface
     protected $creationStack = [];
     protected $debug = false;
 
+    public function setCurrentData($data)
+    {
+        $this->currentData = $data;
+        return $this;
+    }
+
     public function getCurrentData()
     {
         $data = $this->currentData;
