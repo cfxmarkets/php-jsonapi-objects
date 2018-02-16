@@ -7,6 +7,7 @@ class MockDatasource implements \CFX\JsonApi\DatasourceInterface
     protected $callStack = [];
     protected $creationStack = [];
     protected $debug = false;
+    protected $related = [];
 
     public function setCurrentData($data)
     {
@@ -86,10 +87,20 @@ class MockDatasource implements \CFX\JsonApi\DatasourceInterface
         }
     }
 
+    public function setRelated($name, \CFX\JsonApi\DataInterface $r)
+    {
+        $this->related[$name] = $r;
+    }
+
     public function getRelated($name, $id)
     {
         $this->callStack[] = "getRelated('$name', '$id')";
-        return $this->create();
+        if (!array_key_exists($name, $this->related)) {
+            throw new \RuntimeException("You need to add a related resource or collection of type `$name`. You can do this by calling `\$datasource->setRelated('$name', [resource])`");
+        }
+        $r = $this->related[$name];
+        unset($this->related[$name]);
+        return $r;
     }
 
     public function delete($r)
