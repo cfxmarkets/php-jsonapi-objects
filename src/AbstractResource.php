@@ -712,7 +712,15 @@ abstract class AbstractResource implements ResourceInterface {
                 );
             }
              */
-            $this->datasource->initializeResource($this);
+            try {
+                $this->datasource->initializeResource($this);
+            } catch (\CFX\Persistence\ResourceNotFoundException $e) {
+                throw new \CFX\CorruptDataException(
+                    "Programmer: Your system has corrupt data. You've attempted to initialize a resource of ".
+                    "type `{$this->getResourceType()}` with id `{$this->getId()}`, but that resources doesn't exist ".
+                    "in the specified database."
+                );
+            }
         }
         return $this;
     }
