@@ -68,7 +68,15 @@ class MockDatasource implements \CFX\JsonApi\DatasourceInterface
     public function convert(\CFX\JsonApi\ResourceInterface $src, $convertTo)
     {
         $this->callStack[] = "convert([resource], '$convertTo')";
-        return $src;
+        if (!($classname = array_shift($this->creationStack))) {
+            throw new \RuntimeException(
+                "Since this is a mock datasource and not a real one, you need to actually add the class to create to ".
+                "the creation stack using the `addClassToCreate` method. This class should be the class you want to convert ".
+                "the resource to."
+            );
+        }
+        $converted = $classname::fromResource($src, $this);
+        return $converted;
     }
 
     public function save(\CFX\JsonApi\ResourceInterface $r)
