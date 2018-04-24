@@ -38,8 +38,20 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
         }
     }
 
-    public function testErrorShouldValidateLinks() {
-        $this->markTestIncomplete();
+    public function testErrorShouldValidateLinksOnInstantiate() {
+        $e = new Error([
+            'status' => 500,
+            'title' => "Server Error",
+            "detail" => "There was an error",
+            "links" => new \CFX\JsonApi\Collection([
+                "about" => "https://test.com/about/error"
+            ]),
+        ]);
+        $this->assertInstanceOf("\\CFX\\JsonApi\\CollectionInterface", $e->getLinks());
+        $this->assertEquals(1, count($e->getLinks()));
+        $this->assertInstanceOf("\\CFX\\JsonApi\\LinkInterface", $e->getLinks()['about']);
+        $this->assertEquals("about", $e->getLinks()['about']->getName());
+        $this->assertEquals("https://test.com/about/error", $e->getLinks()['about']->getHref());
     }
 
     public function testErrorShouldValidateSource() {

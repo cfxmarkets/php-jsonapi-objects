@@ -26,10 +26,25 @@ class Error implements ErrorInterface {
             }
 
             if ($k == 'links') {
-                if (!($v instanceof Collection)) throw new \InvalidArgumentException("Value passed with key `links` must be a JsonApi Collection containing an `about` key with a link to more information about this error.");
+                if (!($v instanceof Collection)) {
+                    throw new \InvalidArgumentException(
+                        "Value passed with key `links` must be a JsonApi Collection containing an `about` ".
+                        "key with a link to more information about this error."
+                    );
+                }
                 if (count($v) != 1 ||
-                    !array_key_exists('about', $v) ||
-                    (!is_string($v['about']) && !($v['about'] instanceof Link))) throw new \InvalidArgumentException("The Collection passed as `links` must contain exactly one item, `about`, which should be a string or a Link object.");
+                    !isset($v['about']) ||
+                    (!is_string($v['about']) && !($v['about'] instanceof Link))
+                ) {
+                    throw new \InvalidArgumentException(
+                        "The Collection passed as `links` must contain exactly one item, `about`, which should ".
+                        "be a string or a Link object."
+                    );
+                }
+
+                if (is_string($v['about'])) {
+                    $v['about'] = new Link(['name' => 'about', 'href' => $v['about']]);
+                }
             } elseif ($k == 'status') {
                 if (!is_int($v) || $v < 100 || $v >= 600) throw new \InvalidArgumentException("Value for `status` must be an integery between 100 and 599");
             }
