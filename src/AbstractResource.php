@@ -226,6 +226,10 @@ abstract class AbstractResource implements ResourceInterface {
                     $changes['relationships'][$name] = $src->changes['relationships'][$name];
                 }
             }
+
+            if (array_key_exists($name, $src->initializedRelationships)) {
+                $targ->initializedRelationships[$name] = $name;
+            }
         }
 
         $targ->internalUpdateFromData($data);
@@ -714,6 +718,7 @@ abstract class AbstractResource implements ResourceInterface {
              */
             try {
                 $this->datasource->initializeResource($this);
+                $this->setInitialState();
             } catch (\CFX\Persistence\ResourceNotFoundException $e) {
                 throw new \CFX\CorruptDataException(
                     "Programmer: Your system has corrupt data. You've attempted to initialize a resource of ".
@@ -731,6 +736,7 @@ abstract class AbstractResource implements ResourceInterface {
      */
     public function refresh()
     {
+        $this->initializedRelationships = [];
         $this->initialized = false;
         return $this->initialize();
     }
