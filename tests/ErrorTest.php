@@ -38,12 +38,45 @@ class ErrorTest extends \PHPUnit\Framework\TestCase {
         }
     }
 
-    public function testErrorShouldValidateLinks() {
-        $this->markTestIncomplete();
+    public function testErrorShouldValidateLinksOnInstantiate() {
+        $e = new Error([
+            'status' => 500,
+            'title' => "Server Error",
+            "detail" => "There was an error",
+            "links" => new \CFX\JsonApi\Collection([
+                "about" => "https://test.com/about/error"
+            ]),
+        ]);
+        $this->assertInstanceOf("\\CFX\\JsonApi\\CollectionInterface", $e->getLinks());
+        $this->assertEquals(1, count($e->getLinks()));
+        $this->assertInstanceOf("\\CFX\\JsonApi\\LinkInterface", $e->getLinks()['about']);
+        $this->assertEquals("about", $e->getLinks()['about']->getName());
+        $this->assertEquals("https://test.com/about/error", $e->getLinks()['about']->getHref());
     }
 
+    /**
+     * Per the [jsonapi spec](http://jsonapi.org/format/#errors), errors have an optional `source`
+     * member with a certain specification. This test should validate that the Error class enforces
+     * this specification.
+     */
     public function testErrorShouldValidateSource() {
         $this->markTestIncomplete();
+        // TODO: Instantiate error with source property
+        // Should have 'pointer' property and 'parameter'
+        
+        $this->assertTrue(is_array($e->getSource()));
+        $this->assertContains('pointer', array_keys($e->getSource()));
+        $this->assertRegExp("#(/[^/]+)+#", $e->getSource()['pointer']);
+        $this->assertContains('parameter', array_keys($e->getSource()));
+        $this->assertRegExp("#[^/&= ]+#", $e->getSource()['parameter']);
+
+
+        // TODO: Instantiate error with source property and NOT pointer or parameter
+
+        $this->assertInstanceOf("\\CFX\\JsonApi\\ErrorInterface", $e);
+        $this->assertNotContains('pointer', array_keys($e->getSource()));
+        $this->assertNotContains('parameter', array_keys($e->getSource()));
+        $this->assertTrue(count($e->getSource()) > 0);
     }
 
     public function testErrorShouldValidateMeta() {
