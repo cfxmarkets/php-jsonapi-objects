@@ -582,6 +582,16 @@ abstract class AbstractResource implements ResourceInterface {
     }
 
     /**
+     * NOTE: This method was added in an emergency. There are a lot of problems regarding accessing resource fields
+     * after deletion. These should be resolved before this method can be depended upon.
+     */
+    public function delete() {
+        $this->datasource->delete($this);
+        $this->id = null;
+        return $this;
+    }
+
+    /**
      * @inheritdoc
      */
     public function convertTo($type) {
