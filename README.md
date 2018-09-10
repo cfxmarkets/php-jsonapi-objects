@@ -18,12 +18,14 @@ This library can be installed using the standard composer process:
 composer require cfxmarkets/php-jsonapi-objects
 ```
 
+It complies with [PSR-4 Autoloading](https://www.php-fig.org/psr/psr-4/), with the `\CFX\JsonApi` namespace found at `src/`.
+
 
 ## Usage
 
 The library is designed to form the foundation of your JSON-API-aware data model (see [Design Philosophy](#design-philosophy) below). Thus, you'll probably use it most commonly to implement resource objects. It is intended that those objects be managed by datasource objects implementing `DatasourceInterface`.
 
-Because this library does not contain any concrete implementations of specific resource objects (excepting the `GenericResource` class, which is not specific enough to provide a useful example), I'll demonstrate usage using a contrived example. Furthermore, because this library doesn't contain persistence logic, I'll forgo discussions of persistence in my example.
+Because this library does not contain any concrete implementations of specific resource objects (excepting the `GenericResource` class, which is not specific enough to provide a useful example), we'll demonstrate usage using a contrived example. Furthermore, because this library doesn't contain persistence logic, we'll forgo discussions of persistence in our example.
 
 Following is an example of how you might use a `User` class as extended from `AbstractResource`:
 
@@ -32,10 +34,6 @@ Following is an example of how you might use a `User` class as extended from `Ab
 if (!$user->isAtLeast('manager')) {
     throw new UnauthorizedAccessException("You must be at least a manager to view this page");
 }
-
-```
-
-```php
 
 // User user info to prefill forms
 $form = '<form method="POST">
