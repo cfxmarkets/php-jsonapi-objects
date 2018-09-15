@@ -10,7 +10,7 @@ class Document implements DocumentInterface {
     protected $errors;
     protected $links;
     protected $meta;
-    protected $included;
+    protected $included = [];
     protected $jsonapi;
 
     public function __construct($data=null) {
@@ -77,7 +77,6 @@ class Document implements DocumentInterface {
 
             if (array_key_exists('included', $data)) {
                 if (!is_array($data['included'])) throw new \InvalidArgumentException("If you pass an array of included resources, it must be an array, not an object or string or null or anything else.");
-                $this->included = $this->getFactory()->newResourceCollection();
                 foreach($data['included'] as $r) $this->included[] = $this->getFactory()->newResource($r, $r['type']);
                 unset($data['included']);
             }
@@ -139,6 +138,18 @@ class Document implements DocumentInterface {
         return $this;
     }
 
+    public function include(ResourceInterface $r)
+    {
+        foreach ($this->included as $i) {
+            if ($i === $r) {
+                return $this;
+            }
+        }
+
+        $this->included[] = $r;
+        return $this;
+    }
+
 
 
 
@@ -155,6 +166,8 @@ class Document implements DocumentInterface {
                     $this->addLink($this->getFactory()->newLink([ 'name' => 'self', 'href' => $this->baseUrl.$this->data[0]->getCollectionLinkPath() ]));
                 }
             }
+
+            if (count($this->included)) $data["included"] = $this->included;
         }
 
         if ($this->links) $data['links'] = $this->links;
