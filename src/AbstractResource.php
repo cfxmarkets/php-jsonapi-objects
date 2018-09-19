@@ -78,6 +78,11 @@ abstract class AbstractResource implements ResourceInterface {
      */
     protected $initializedRelationships = [];
 
+    /**
+     * @var \CFX\JsonApi\MetaInterface|null
+     */
+    protected $meta = null;
+
 
     /**
      * Constructor: constructs a Resource object
@@ -237,6 +242,8 @@ abstract class AbstractResource implements ResourceInterface {
         $targ->changes = array_replace_recursive($targ->changes, $changes);
         $targ->initialized = $src->initialized;
 
+        $targ->meta = $src->meta;
+
         return $targ;
     }
 
@@ -331,6 +338,12 @@ abstract class AbstractResource implements ResourceInterface {
                 $this->$setRelationship($rel->getData());
             }
             unset($data['relationships']);
+        }
+
+        // Set meta
+        if (array_key_exists('meta', $data)) {
+            $this->setMeta($data["meta"] === null ? null : new Meta($data["meta"]));
+            unset($data['meta']);
         }
 
         // Now throw errors on leftover data
@@ -616,6 +629,10 @@ abstract class AbstractResource implements ResourceInterface {
             $data['id'] = $this->id;
         }
 
+        if ($this->meta) {
+            $data["meta"] = $this->meta;
+        }
+
         if (!$fullResource) return $data;
 
         if (count($this->attributes) > 0) {
@@ -749,6 +766,25 @@ abstract class AbstractResource implements ResourceInterface {
         $this->initializedRelationships = [];
         $this->initialized = false;
         return $this->initialize();
+    }
+
+
+    /**
+     * @inheritdoc
+     */
+    public function getMeta(): ?MetaInterface
+    {
+        return $this->meta;
+    }
+
+
+    /**
+     * @inheritdoc
+     */
+    public function setMeta(?MetaInterface $meta = null): ResourceInterface
+    {
+        $this->meta = $meta;
+        return $this;
     }
 
 

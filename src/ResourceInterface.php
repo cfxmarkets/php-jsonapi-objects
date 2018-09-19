@@ -161,5 +161,20 @@ interface ResourceInterface extends DataInterface, \JsonSerializable, \KS\ErrorH
      * @return string
      */
     public function getSelfLinkPath();
+
+    /**
+     * Get meta information associated with this resource
+     *
+     * @return \CFX\JsonApi\MetaInterface
+     */
+    public function getMeta(): ?MetaInterface;
+
+    /**
+     * Set meta information associated with this resource
+     *
+     * @param \CFX\JsonApi\MetaInterface
+     * @return \CFX\JsonApi\ResourceInterface
+     */
+    public function setMeta(?MetaInterface $meta): \CFX\JsonApi\ResourceInterface;
 }
 
