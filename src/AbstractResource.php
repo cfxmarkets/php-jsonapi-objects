@@ -342,7 +342,10 @@ abstract class AbstractResource implements ResourceInterface {
 
         // Set meta
         if (array_key_exists('meta', $data)) {
-            $this->setMeta($data["meta"] === null ? null : new Meta($data["meta"]));
+            if ($data["meta"] && !($data["meta"] instanceof MetaInterface)) {
+                $data["meta"] = new Meta($data["meta"]);
+            }
+            $this->setMeta($data["meta"] === null ? null : $data["meta"]);
             unset($data['meta']);
         }
 
