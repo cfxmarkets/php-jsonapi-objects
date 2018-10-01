@@ -10,10 +10,12 @@ class Document implements DocumentInterface {
     protected $errors;
     protected $links;
     protected $meta;
-    protected $included = [];
+    protected $included;
     protected $jsonapi;
 
     public function __construct($data=null) {
+        $this->included = $this->getFactory()->newResourceCollection();
+
         if ($data) {
             if (array_key_exists('errors', $data)) {
                 foreach($data['errors'] as $error) {
@@ -148,6 +150,11 @@ class Document implements DocumentInterface {
 
         $this->included[] = $r;
         return $this;
+    }
+
+    public function getIncluded(): ResourceCollectionInterface
+    {
+        return $this->included;
     }
 
 

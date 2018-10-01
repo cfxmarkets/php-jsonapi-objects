@@ -12,5 +12,6 @@ interface DocumentInterface extends \JsonSerializable {
     function addLink(LinkInterface $l);
     function setMeta(MetaInterface $m);
     function include(ResourceInterface $r);
+    function getIncluded(): ResourceCollectionInterface;
 }
 
