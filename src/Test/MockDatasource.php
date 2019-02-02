@@ -85,7 +85,7 @@ class MockDatasource implements \CFX\JsonApi\DatasourceInterface
         return $this;
     }
 
-    public function get($q=null)
+    public function get($q=null, string $sort = null, ?array $pagination = null)
     {
         $this->callStack[] = "get('$q')";
         if ($q) {

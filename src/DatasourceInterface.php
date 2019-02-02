@@ -65,13 +65,16 @@ interface DatasourceInterface {
      * any type of persistence system.
      *
      * @param string $query An optional query with which to filter resources.
+     * @param string $sort An optional sort parameter that conforms to the JSON:API sort specification (https://jsonapi.org/format/#fetching-sorting)
+     * @param array $pagination An optional pagination parameter that is expected to implement some sort of pagination protocol
+     * (see suggestions [here](https://jsonapi.org/format/#fetching-pagination))
      * @return \CFX\JsonApi\ResourceInterface|ResourceCollectionInterface The resource or resource collection returned
      * by the query. If the query includes an ID, then a single resource is returned (or exception thrown). If it doesn't include an
      * id, then a (possibly empty) collection is returned.
      *
      * @throws ResourceNotFoundException
      */
-    public function get($q=null);
+    public function get($q=null, string $sort = null, ?array $pagination = null);
 
     /**
      * getRelated -- Get the resource or collection represented by the named relationship

@@ -69,7 +69,8 @@ class UsersDatasource implements \CFX\JsonApi\DatasourceInterface {
         return $this;
     }
 
-    public function get($q=null) {
+    public function get($q=null, string $sort = null, ?array $pagination = null)
+    {
         $data = $this->getTestData("get-$q");
 
         $keys = array_keys($data);
