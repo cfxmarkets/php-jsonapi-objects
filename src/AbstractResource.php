@@ -220,6 +220,8 @@ abstract class AbstractResource implements ResourceInterface {
                 $initialState['attributes'][$name] = $src->initialState['attributes'][$name];
                 if (array_key_exists($name, $src->changes['attributes'])) {
                     $changes['attributes'][$name] = $src->changes['attributes'][$name];
+                } elseif (array_key_exists($name, $targ->changes["attributes"])) {
+                    unset($targ->changes["attributes"][$name]);
                 }
             }
         }
@@ -229,6 +231,8 @@ abstract class AbstractResource implements ResourceInterface {
                 $initialState['relationships'][$name] = $src->initialState['relationships'][$name];
                 if (array_key_exists($name, $src->changes['relationships'])) {
                     $changes['relationships'][$name] = $src->changes['relationships'][$name];
+                } elseif (array_key_exists($name, $targ->changes["relationships"])) {
+                    unset($targ->changes["relationships"][$name]);
                 }
             }
 
@@ -237,8 +241,8 @@ abstract class AbstractResource implements ResourceInterface {
             }
         }
 
-        $targ->internalUpdateFromData($data);
         $targ->initialState = array_replace_recursive($targ->initialState, $initialState);
+        $targ->internalUpdateFromData($data);
         $targ->changes = array_replace_recursive($targ->changes, $changes);
         $targ->initialized = $src->initialized;
 
